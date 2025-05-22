@@ -1,8 +1,0 @@
-name: TeamsSystem
-main: com.mhndk27.teamsys.TeamsSystem
-version: 1.0
-api-version: 1.20
-commands:
-  team:
-    description: إدارة الفرق
-    usage: /team <invite|accept|leave|promote|kick|disband>
