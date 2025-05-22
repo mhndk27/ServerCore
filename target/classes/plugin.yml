@@ -5,7 +5,7 @@ api-version: 1.20
 commands:
   party:
     description: Manage parties
-    usage: /party <create|invite|kick|leave|promote|disband|chat>
+    usage: /party <create|invite|kick|leave|promote|disband|chat|accept|deny>
     permission: partysys.use
 permissions:
   partysys.use:

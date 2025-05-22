@@ -14,7 +14,7 @@ public class PartyTabCompleter implements TabCompleter {
 
     private final PartyManager partyManager;
     private final List<String> subcommands = Arrays.asList(
-            "create", "invite", "kick", "leave", "promote", "disband", "chat"
+        "create", "invite", "kick", "leave", "promote", "disband", "chat", "accept", "deny"
     );
 
     public PartyTabCompleter(PartyManager partyManager) {
