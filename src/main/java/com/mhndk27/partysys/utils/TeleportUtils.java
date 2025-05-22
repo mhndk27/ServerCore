@@ -17,4 +17,10 @@ public class TeleportUtils {
         Location lobbyLocation = new Location(world, LOBBY_X, LOBBY_Y, LOBBY_Z);
         player.teleport(lobbyLocation);
     }
+
+    // أضف هذه الطريقة عشان تلبي الطلب في PartyManager.java
+    public static void teleportToLocation(Player player, Location location) {
+        if (player == null || location == null) return;
+        player.teleport(location);
+    }
 }

@@ -4,38 +4,38 @@ import java.util.*;
 
 public class Party {
 
-    private UUID leader;
+    private UUID leaderUUID;
     private final Set<UUID> members = new HashSet<>();
-    private static final int MAX_MEMBERS = 4;
 
-    public Party(UUID leader) {
-        this.leader = leader;
-        members.add(leader);
+    public Party(UUID leaderUUID) {
+        this.leaderUUID = leaderUUID;
+        members.add(leaderUUID);
     }
 
-    public UUID getLeader() {
-        return leader;
+    public UUID getLeaderUUID() {
+        return leaderUUID;
+    }
+
+    public void setLeader(UUID newLeaderUUID) {
+        if (members.contains(newLeaderUUID)) {
+            this.leaderUUID = newLeaderUUID;
+        }
+    }
+
+    public boolean isLeader(UUID playerUUID) {
+        return leaderUUID.equals(playerUUID);
     }
 
     public Set<UUID> getMembers() {
         return Collections.unmodifiableSet(members);
     }
 
-    public boolean isLeader(UUID playerUUID) {
-        return leader.equals(playerUUID);
-    }
-
-    public boolean isFull() {
-        return members.size() >= MAX_MEMBERS;
-    }
-
     public boolean addMember(UUID playerUUID) {
-        if (isFull()) return false;
+        if (members.size() >= 4) return false; // حد الأعضاء 4
         return members.add(playerUUID);
     }
 
     public boolean removeMember(UUID playerUUID) {
-        if (leader.equals(playerUUID)) return false;
         return members.remove(playerUUID);
     }
 
@@ -43,9 +43,13 @@ public class Party {
         return members.contains(playerUUID);
     }
 
+    public boolean isFull() {
+        return members.size() >= 4;
+    }
+
     public void transferLeadership(UUID newLeaderUUID) {
         if (members.contains(newLeaderUUID)) {
-            this.leader = newLeaderUUID;
+            this.leaderUUID = newLeaderUUID;
         }
     }
 }
