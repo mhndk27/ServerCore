@@ -26,7 +26,7 @@ public class PartyCommand implements CommandExecutor {
         }
 
         if (args.length == 0) {
-            player.sendMessage(MessageUtils.error("Usage: /party <create|invite|kick|leave|promote|disband|chat>"));
+            player.sendMessage(MessageUtils.error("Usage: /party <create|invite|accept|deny|kick|leave|promote|disband|chat>"));
             return true;
         }
 
@@ -72,9 +72,49 @@ public class PartyCommand implements CommandExecutor {
                     player.sendMessage(MessageUtils.error("Party is full."));
                     return true;
                 }
-                partyManager.addMember(playerUUID, targetUUID);
-                target.sendMessage(MessageUtils.success("You have been invited to a party by " + player.getName()));
+                partyManager.addInvite(targetUUID, playerUUID);
+                target.sendMessage(MessageUtils.success("You have been invited to a party by " + player.getName() + ". Use /party accept to join or /party deny to decline."));
                 player.sendMessage(MessageUtils.success("Player invited successfully."));
+            }
+            case "accept" -> {
+                if (!partyManager.hasInvite(playerUUID)) {
+                    player.sendMessage(MessageUtils.error("You have no pending party invites."));
+                    return true;
+                }
+                if (partyManager.isInParty(playerUUID)) {
+                    player.sendMessage(MessageUtils.error("You are already in a party."));
+                    return true;
+                }
+                PartyManager.InviteData invite = partyManager.getInviteData(playerUUID);
+                UUID leaderUUID = invite.getLeaderUUID();
+
+                Party party = partyManager.getParty(leaderUUID);
+                if (party == null || !party.isLeader(leaderUUID)) {
+                    player.sendMessage(MessageUtils.error("The party invite is no longer valid."));
+                    partyManager.removeInvite(playerUUID);
+                    return true;
+                }
+                if (party.isFull()) {
+                    player.sendMessage(MessageUtils.error("Party is full."));
+                    partyManager.removeInvite(playerUUID);
+                    return true;
+                }
+                partyManager.addMember(leaderUUID, playerUUID);
+                partyManager.removeInvite(playerUUID);
+
+                player.sendMessage(MessageUtils.success("You have joined the party."));
+                Player leader = Bukkit.getPlayer(leaderUUID);
+                if (leader != null) {
+                    leader.sendMessage(MessageUtils.success(player.getName() + " has joined the party."));
+                }
+            }
+            case "deny" -> {
+                if (!partyManager.hasInvite(playerUUID)) {
+                    player.sendMessage(MessageUtils.error("You have no pending party invites."));
+                    return true;
+                }
+                partyManager.removeInvite(playerUUID);
+                player.sendMessage(MessageUtils.success("You have declined the party invite."));
             }
             case "kick" -> {
                 if (args.length < 2) {
@@ -119,9 +159,6 @@ public class PartyCommand implements CommandExecutor {
                 partyManager.leaveParty(playerUUID);
                 TeleportUtils.teleportToLobby(player);
                 player.sendMessage(MessageUtils.success("You left the party."));
-                if (wasLeader) {
-                    // هنا ممكن تضيف إشعار للأعضاء الآخرين لو حبيت
-                }
             }
             case "promote" -> {
                 if (args.length < 2) {

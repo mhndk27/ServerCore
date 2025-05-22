@@ -40,32 +40,31 @@ public class PartyTabCompleter implements TabCompleter {
             if (!partyManager.isInParty(playerUUID)) return Collections.emptyList();
 
             Party party = partyManager.getParty(playerUUID);
-
             if (party == null) return Collections.emptyList();
 
             switch (subcommand) {
-                case "kick", "promote", "invite" -> {
-                    // للـ invite نعرض كل اللاعبين أونلاين اللي مو في بارتي
-                    if ("invite".equals(subcommand)) {
-                        return Bukkit.getOnlinePlayers().stream()
-                                .filter(p -> !partyManager.isInParty(p.getUniqueId()))
-                                .map(Player::getName)
-                                .filter(name -> name.toLowerCase().startsWith(args[1].toLowerCase()))
-                                .toList();
-                    } else {
-                        // kick و promote يعرضون أسماء أعضاء الفريق ما عدا قائد للطرد، وكامل للترقية
-                        return party.getMembers().stream()
-                                .map(pUUID -> partyManager.getPlayerName(pUUID))
-                                .filter(Objects::nonNull)
-                                .filter(name -> {
-                                    if (subcommand.equals("kick")) {
-                                        return !party.isLeader(playerUUID) || !name.equalsIgnoreCase(player.getName());
-                                    }
-                                    return true;
-                                })
-                                .filter(name -> name.toLowerCase().startsWith(args[1].toLowerCase()))
-                                .toList();
-                    }
+                case "invite" -> {
+                    // لاعبين أونلاين مش في بارتي
+                    return Bukkit.getOnlinePlayers().stream()
+                            .filter(p -> !partyManager.isInParty(p.getUniqueId()))
+                            .map(Player::getName)
+                            .filter(name -> name.toLowerCase().startsWith(args[1].toLowerCase()))
+                            .toList();
+                }
+                case "kick", "promote" -> {
+                    // أسماء أعضاء الفريق مع استثناء القائد من قائمة kick
+                    return party.getMembers().stream()
+                            .map(pUUID -> partyManager.getPlayerName(pUUID))
+                            .filter(Objects::nonNull)
+                            .filter(name -> {
+                                if (subcommand.equals("kick")) {
+                                    UUID uuid = partyManager.getUUIDFromName(name);
+                                    return uuid != null && !party.isLeader(uuid);
+                                }
+                                return true; // للترقية نعرض الكل
+                            })
+                            .filter(name -> name.toLowerCase().startsWith(args[1].toLowerCase()))
+                            .toList();
                 }
                 default -> {
                     return Collections.emptyList();
