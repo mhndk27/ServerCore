@@ -6,12 +6,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.mhndk27</groupId>
-    <artifactId>TeamsSystem</artifactId>
+    <artifactId>PartySystem</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
-    <name>TeamsSystem</name>
-    <description>Teams management plugin for Paper 1.20.4</description>
+    <name>PartySystemSystem</name>
+    <description>Party management plugin for Paper 1.20.4</description>
 
     <properties>
         <java.version>17</java.version>
