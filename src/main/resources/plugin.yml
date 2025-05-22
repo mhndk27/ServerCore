@@ -1,0 +1,13 @@
+name: PartySystem
+main: com.mhndk27.partysys.PartySystemPlugin
+version: 1.0
+api-version: 1.20
+commands:
+  party:
+    description: Manage parties
+    usage: /party <create|invite|kick|leave|transfer|disband|chat>
+    permission: partysys.use
+permissions:
+  partysys.use:
+    description: Allows using party commands
+    default: true
