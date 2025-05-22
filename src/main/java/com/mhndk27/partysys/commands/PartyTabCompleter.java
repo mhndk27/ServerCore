@@ -1,30 +1,78 @@
 package com.mhndk27.partysys.commands;
 
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabCompleter;
+import com.mhndk27.partysys.Party;
+import com.mhndk27.partysys.PartyManager;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import org.bukkit.Bukkit;
+import org.bukkit.command.*;
+import org.bukkit.entity.Player;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class PartyTabCompleter implements TabCompleter {
 
-    private final List<String> commands = Arrays.asList(
-            "create", "invite", "kick", "leave", "transfer", "disband", "chat"
+    private final PartyManager partyManager;
+    private final List<String> subcommands = Arrays.asList(
+            "create", "invite", "kick", "leave", "promote", "disband", "chat"
     );
+
+    public PartyTabCompleter(PartyManager partyManager) {
+        this.partyManager = partyManager;
+    }
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        List<String> completions = new ArrayList<>();
+        if (!(sender instanceof Player player)) {
+            return Collections.emptyList();
+        }
 
         if (args.length == 1) {
-            for (String cmd : commands) {
-                if (cmd.startsWith(args[0].toLowerCase())) {
-                    completions.add(cmd);
+            return subcommands.stream()
+                    .filter(s -> s.startsWith(args[0].toLowerCase()))
+                    .collect(Collectors.toList());
+        }
+
+        if (args.length == 2) {
+            String subcommand = args[0].toLowerCase();
+            UUID playerUUID = player.getUniqueId();
+
+            if (!partyManager.isInParty(playerUUID)) return Collections.emptyList();
+
+            Party party = partyManager.getParty(playerUUID);
+
+            if (party == null) return Collections.emptyList();
+
+            switch (subcommand) {
+                case "kick", "promote", "invite" -> {
+                    // للـ invite نعرض كل اللاعبين أونلاين اللي مو في بارتي
+                    if ("invite".equals(subcommand)) {
+                        return Bukkit.getOnlinePlayers().stream()
+                                .filter(p -> !partyManager.isInParty(p.getUniqueId()))
+                                .map(Player::getName)
+                                .filter(name -> name.toLowerCase().startsWith(args[1].toLowerCase()))
+                                .toList();
+                    } else {
+                        // kick و promote يعرضون أسماء أعضاء الفريق ما عدا قائد للطرد، وكامل للترقية
+                        return party.getMembers().stream()
+                                .map(pUUID -> partyManager.getPlayerName(pUUID))
+                                .filter(Objects::nonNull)
+                                .filter(name -> {
+                                    if (subcommand.equals("kick")) {
+                                        return !party.isLeader(playerUUID) || !name.equalsIgnoreCase(player.getName());
+                                    }
+                                    return true;
+                                })
+                                .filter(name -> name.toLowerCase().startsWith(args[1].toLowerCase()))
+                                .toList();
+                    }
+                }
+                default -> {
+                    return Collections.emptyList();
                 }
             }
         }
-        return completions;
+
+        return Collections.emptyList();
     }
 }

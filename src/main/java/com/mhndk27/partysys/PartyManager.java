@@ -2,62 +2,59 @@ package com.mhndk27.partysys;
 
 import java.util.*;
 
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
+
 public class PartyManager {
 
-    private final Map<UUID, PlayerPartyData> playerDataMap = new HashMap<>();
+    private final Map<UUID, Party> playerPartyMap = new HashMap<>();
     private final Set<Party> parties = new HashSet<>();
 
-    public PlayerPartyData getPlayerData(UUID playerUUID) {
-        return playerDataMap.computeIfAbsent(playerUUID, PlayerPartyData::new);
+    public Party getParty(UUID playerUUID) {
+        return playerPartyMap.get(playerUUID);
+    }
+
+    public boolean isInParty(UUID playerUUID) {
+        return playerPartyMap.containsKey(playerUUID);
     }
 
     public Party createParty(UUID leaderUUID) {
-        if (isInAnyParty(leaderUUID)) return null;
+        if (isInParty(leaderUUID)) return null;
         Party party = new Party(leaderUUID);
         parties.add(party);
-        getPlayerData(leaderUUID).setParty(party);
+        addParty(party);
         return party;
     }
 
-    public void disbandParty(Party party) {
+    public void addParty(Party party) {
         for (UUID member : party.getMembers()) {
-            PlayerPartyData data = getPlayerData(member);
-            data.setParty(null);
+            playerPartyMap.put(member, party);
+        }
+    }
+
+    public void removeParty(Party party) {
+        for (UUID member : party.getMembers()) {
+            playerPartyMap.remove(member);
         }
         parties.remove(party);
     }
 
-    public boolean isInAnyParty(UUID playerUUID) {
-        PlayerPartyData data = playerDataMap.get(playerUUID);
-        return data != null && data.isInParty();
-    }
-
-    public Party getParty(UUID playerUUID) {
-        PlayerPartyData data = playerDataMap.get(playerUUID);
-        if (data == null) return null;
-        return data.getParty();
-    }
-
-    public boolean addMemberToParty(UUID leaderUUID, UUID targetUUID) {
+    public boolean addMember(UUID leaderUUID, UUID targetUUID) {
         Party party = getParty(leaderUUID);
-        if (party == null || !party.getLeader().equals(leaderUUID)) return false;
-        if (isInAnyParty(targetUUID)) return false;
+        if (party == null || !party.isLeader(leaderUUID)) return false;
+        if (isInParty(targetUUID)) return false;
         if (party.isFull()) return false;
         boolean added = party.addMember(targetUUID);
-        if (added) {
-            getPlayerData(targetUUID).setParty(party);
-        }
+        if (added) addParty(party);
         return added;
     }
 
-    public boolean removeMemberFromParty(UUID leaderUUID, UUID targetUUID) {
+    public boolean removeMember(UUID leaderUUID, UUID targetUUID) {
         Party party = getParty(leaderUUID);
-        if (party == null || !party.getLeader().equals(leaderUUID)) return false;
+        if (party == null || !party.isLeader(leaderUUID)) return false;
         if (!party.contains(targetUUID)) return false;
         boolean removed = party.removeMember(targetUUID);
-        if (removed) {
-            getPlayerData(targetUUID).setParty(null);
-        }
+        if (removed) playerPartyMap.remove(targetUUID);
         return removed;
     }
 
@@ -65,22 +62,31 @@ public class PartyManager {
         Party party = getParty(playerUUID);
         if (party == null) return false;
 
-        if (party.getLeader().equals(playerUUID)) {
-            // قائد خرج، حل البارتي
-            disbandParty(party);
+        if (party.isLeader(playerUUID)) {
+            // قائد غادر => حل البارتي
+            removeParty(party);
         } else {
             party.removeMember(playerUUID);
-            getPlayerData(playerUUID).setParty(null);
+            playerPartyMap.remove(playerUUID);
         }
         return true;
     }
 
     public boolean transferLeadership(UUID currentLeaderUUID, UUID newLeaderUUID) {
         Party party = getParty(currentLeaderUUID);
-        if (party == null || !party.getLeader().equals(currentLeaderUUID)) return false;
+        if (party == null || !party.isLeader(currentLeaderUUID)) return false;
         if (!party.contains(newLeaderUUID)) return false;
-
         party.transferLeadership(newLeaderUUID);
         return true;
+    }
+
+    public boolean isInAnyParty(UUID playerUUID) {
+        return isInParty(playerUUID);
+    }
+
+    public String getPlayerName(UUID playerUUID) {
+        Player player = Bukkit.getPlayer(playerUUID);
+        if (player != null) return player.getName();
+        return null;
     }
 }

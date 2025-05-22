@@ -1,8 +1,6 @@
 package com.mhndk27.partysys;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 public class Party {
 
@@ -20,7 +18,11 @@ public class Party {
     }
 
     public Set<UUID> getMembers() {
-        return members;
+        return Collections.unmodifiableSet(members);
+    }
+
+    public boolean isLeader(UUID playerUUID) {
+        return leader.equals(playerUUID);
     }
 
     public boolean isFull() {
@@ -33,16 +35,17 @@ public class Party {
     }
 
     public boolean removeMember(UUID playerUUID) {
+        if (leader.equals(playerUUID)) return false;
         return members.remove(playerUUID);
-    }
-
-    public void transferLeadership(UUID newLeader) {
-        if (members.contains(newLeader)) {
-            leader = newLeader;
-        }
     }
 
     public boolean contains(UUID playerUUID) {
         return members.contains(playerUUID);
+    }
+
+    public void transferLeadership(UUID newLeaderUUID) {
+        if (members.contains(newLeaderUUID)) {
+            this.leader = newLeaderUUID;
+        }
     }
 }

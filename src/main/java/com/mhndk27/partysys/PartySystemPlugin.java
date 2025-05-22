@@ -15,7 +15,7 @@ public class PartySystemPlugin extends JavaPlugin {
         partyManager = new PartyManager();
 
         getCommand("party").setExecutor(new PartyCommand(partyManager));
-        getCommand("party").setTabCompleter(new PartyTabCompleter());
+        getCommand("party").setTabCompleter(new PartyTabCompleter(partyManager));  // هنا التعديل
 
         getServer().getPluginManager().registerEvents(new PlayerQuitListener(partyManager), this);
         getServer().getPluginManager().registerEvents(new PlayerJoinListener(partyManager), this);

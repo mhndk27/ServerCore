@@ -22,7 +22,8 @@ public class PlayerQuitListener implements Listener {
         Player player = event.getPlayer();
         UUID playerUUID = player.getUniqueId();
 
-        if (partyManager.isInAnyParty(playerUUID)) {
+        // غيرت isInAnyParty إلى isInParty
+        if (partyManager.isInParty(playerUUID)) {
             partyManager.leaveParty(playerUUID);
             TeleportUtils.teleportToLobby(player);
         }
