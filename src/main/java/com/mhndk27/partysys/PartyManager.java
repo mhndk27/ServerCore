@@ -75,6 +75,23 @@ public class PartyManager {
         parties.remove(party);
     }
 
+    private final Set<UUID> partyChatEnabled = new HashSet<>();
+
+    public boolean togglePartyChat(UUID playerUUID) {
+        if (partyChatEnabled.contains(playerUUID)) {
+            partyChatEnabled.remove(playerUUID);
+            return false;
+        } else {
+            partyChatEnabled.add(playerUUID);
+            return true;
+        }
+    }
+
+    public boolean isPartyChatEnabled(UUID playerUUID) {
+        return partyChatEnabled.contains(playerUUID);
+    }
+
+
     public boolean addMember(UUID leaderUUID, UUID targetUUID) {
         Party party = getParty(leaderUUID);
         if (party == null || !party.isLeader(leaderUUID)) return false;

@@ -8,7 +8,9 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.*;
 import org.bukkit.entity.Player;
 
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 public class PartyCommand implements CommandExecutor {
 
@@ -26,7 +28,7 @@ public class PartyCommand implements CommandExecutor {
         }
 
         if (args.length == 0) {
-            player.sendMessage(MessageUtils.error("Usage: /party <create|invite|accept|deny|kick|leave|promote|disband|chat>"));
+            player.sendMessage(MessageUtils.error("Usage: /party <create | invite | accept | deny| kick| leave| promote | disband | chat>"));
             return true;
         }
 
@@ -42,6 +44,18 @@ public class PartyCommand implements CommandExecutor {
                 Party party = partyManager.createParty(playerUUID);
                 if (party != null) {
                     player.sendMessage(MessageUtils.success("Party created successfully."));
+                }
+            }
+            case "chat" -> {
+                if (!partyManager.isInParty(playerUUID)) {
+                    player.sendMessage(MessageUtils.error("You are not in a party."));
+                    return true;
+                }
+                boolean enabled = partyManager.togglePartyChat(playerUUID);
+                if (enabled) {
+                    player.sendMessage(MessageUtils.success("Party chat enabled. Use the chat to talk only with your party."));
+                } else {
+                    player.sendMessage(MessageUtils.info("Party chat disabled. Your messages are now global."));
                 }
             }
             case "invite" -> {
@@ -149,6 +163,7 @@ public class PartyCommand implements CommandExecutor {
                 TeleportUtils.teleportToLobby(target);
                 player.sendMessage(MessageUtils.success("Player kicked successfully."));
             }
+
             case "leave" -> {
                 if (!partyManager.isInParty(playerUUID)) {
                     player.sendMessage(MessageUtils.error("You are not in a party."));
@@ -156,20 +171,31 @@ public class PartyCommand implements CommandExecutor {
                 }
                 Party party = partyManager.getParty(playerUUID);
                 boolean wasLeader = party.isLeader(playerUUID);
+
                 partyManager.leaveParty(playerUUID);
                 TeleportUtils.teleportToLobby(player);
                 player.sendMessage(MessageUtils.success("You left the party."));
-                
+
                 if (wasLeader) {
-                    // تعيين أول عضو كقائد جديد
-                    UUID newLeaderUUID = party.getMembers().iterator().next(); // الحصول على أول عضو
-                    party.setLeader(newLeaderUUID); // تعيينه كقائد
-                    Player newLeader = Bukkit.getPlayer(newLeaderUUID);
-                    if (newLeader != null) {
-                        newLeader.sendMessage(MessageUtils.success("You have been promoted to party leader because the previous leader left."));
+                    // تعيين قائد جديد إذا فيه أعضاء غير القائد
+                    List<UUID> members = party.getMembers().stream()
+                                            .filter(uuid -> !uuid.equals(playerUUID))
+                                            .collect(Collectors.toList());
+
+                    if (!members.isEmpty()) {
+                        UUID newLeaderUUID = members.get(0); // أول عضو في القائمة
+                        party.setLeader(newLeaderUUID);
+                        Player newLeader = Bukkit.getPlayer(newLeaderUUID);
+                        if (newLeader != null) {
+                            newLeader.sendMessage(MessageUtils.success("You have been promoted to party leader because the previous leader left."));
+                        }
+                    } else {
+                        // ما فيه أعضاء، حل البارتي
+                        partyManager.removeParty(party);
                     }
                 }
             }
+
 
 
             case "promote" -> {
