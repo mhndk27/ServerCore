@@ -1,0 +1,23 @@
+{
+  "java.home": "C:/Program Files/Java/jdk-17", // عيّن مسار JDK 17 عندك
+  "java.configuration.runtimes": [
+    {
+      "name": "JavaSE-17",
+      "path": "C:/Program Files/Java/jdk-17",
+      "default": true
+    }
+  ],
+  "java.configuration.updateBuildConfiguration": "interactive",
+  "maven.executable.path": "C:/Program Files/apache-maven-3.9.9/bin/mvn", // عيّن مسار Maven إذا مطلوب
+  "files.exclude": {
+    "**/target": true,
+    "**/.classpath": true,
+    "**/.project": true,
+    "**/.settings": true
+  },
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": "explicit"
+  },
+  "java.compile.nullAnalysis.mode": "automatic"
+}
