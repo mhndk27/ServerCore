@@ -16,52 +16,77 @@ public class TeamCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!(sender instanceof Player player)) {
-            sender.sendMessage("§cالأوامر مخصصة للاعبين فقط.");
+
+        if (!(sender instanceof Player)) {
+            sender.sendMessage("§cOnly players can execute this command.");
             return true;
         }
+        Player player = (Player) sender;
 
         if (args.length == 0) {
-            player.sendMessage("§eأوامر التيم: /team invite <player>, /team leave, /team info");
+            player.sendMessage("§aاستخدام: /team invite <player>, accept, leave, promote <player>, kick <player>, disband");
             return true;
         }
 
         switch (args[0].toLowerCase()) {
-            case "invite" -> {
+            case "invite":
                 if (args.length < 2) {
-                    player.sendMessage("§cاكتب اسم اللاعب للدعوة.");
+                    player.sendMessage("§cالرجاء كتابة اسم اللاعب للدعوة.");
                     return true;
                 }
-                Player target = Bukkit.getPlayerExact(args[1]);
-                if (target == null) {
-                    player.sendMessage("§cاللاعب غير متصل.");
+                Player invitee = Bukkit.getPlayer(args[1]);
+                if (invitee == null || !invitee.isOnline()) {
+                    player.sendMessage("§cاللاعب غير موجود أو غير متصل.");
                     return true;
                 }
-                if (target.equals(player)) {
-                    player.sendMessage("§cلا يمكنك دعوة نفسك.");
+                teamManager.invite(player, invitee);
+                break;
+
+            case "accept":
+                teamManager.acceptInvite(player);
+                break;
+
+            case "leave":
+                if (!teamManager.isInTeam(player)) {
+                    player.sendMessage("§cأنت لست في فريق.");
                     return true;
                 }
-                boolean success = teamManager.invite(player, target);
-                if (success) {
-                    player.sendMessage("§aتم إرسال الدعوة إلى " + target.getName());
-                }
-            }
-            case "leave" -> {
                 teamManager.leaveTeam(player);
-            }
-            case "info" -> {
-                var team = teamManager.getTeam(player);
-                if (team == null) {
-                    player.sendMessage("§cأنت لست في أي فريق.");
+                break;
+
+            case "promote":
+                if (args.length < 2) {
+                    player.sendMessage("§cالرجاء كتابة اسم اللاعب للترقية.");
                     return true;
                 }
-                player.sendMessage("§aقائد الفريق: " + Bukkit.getOfflinePlayer(team.getLeader()).getName());
-                player.sendMessage("§aأعضاء الفريق:");
-                for (var memberUUID : team.getMembers()) {
-                    player.sendMessage(" - " + Bukkit.getOfflinePlayer(memberUUID).getName());
+                Player promoteTarget = Bukkit.getPlayer(args[1]);
+                if (promoteTarget == null || !promoteTarget.isOnline()) {
+                    player.sendMessage("§cاللاعب غير موجود أو غير متصل.");
+                    return true;
                 }
-            }
-            default -> player.sendMessage("§cالأمر غير معروف.");
+                teamManager.promote(player, promoteTarget);
+                break;
+
+            case "kick":
+                if (args.length < 2) {
+                    player.sendMessage("§cالرجاء كتابة اسم اللاعب للطرد.");
+                    return true;
+                }
+                Player kickTarget = Bukkit.getPlayer(args[1]);
+                if (kickTarget == null || !kickTarget.isOnline()) {
+                    player.sendMessage("§cاللاعب غير موجود أو غير متصل.");
+                    return true;
+                }
+                teamManager.kick(player, kickTarget);
+                break;
+
+            case "disband":
+                teamManager.disband(player);
+                break;
+
+            default:
+                player.sendMessage("§cالأمر غير معروف.");
+                break;
         }
 
         return true;

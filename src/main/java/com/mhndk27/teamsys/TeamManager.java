@@ -7,83 +7,149 @@ import java.util.*;
 public class TeamManager {
 
     private final TeamsSystem plugin;
+    private final InviteManager inviteManager;
 
-    // map player uuid -> team
     private final Map<UUID, Team> playerTeams = new HashMap<>();
 
-    public TeamManager(TeamsSystem plugin) {
+    public TeamManager(TeamsSystem plugin, InviteManager inviteManager) {
         this.plugin = plugin;
-    }
-
-    // احصل على تيم اللاعب، لو ما موجود اعمل له تيم جديد وهو القائد
-    public Team getOrCreateTeam(Player player) {
-        return playerTeams.computeIfAbsent(player.getUniqueId(), uuid -> {
-            Team team = new Team(player.getUniqueId());
-            player.sendMessage("§aتم إنشاء فريق خاص بك وأنت القائد!");
-            return team;
-        });
-    }
-
-    // دعوة لاعب للتيم، الدعوة تلقائياً تجعل الداعي هو القائد
-    public boolean invite(Player inviter, Player invitee) {
-        Team inviterTeam = getOrCreateTeam(inviter);
-        Team inviteeTeam = getOrCreateTeam(invitee);
-
-        if (inviterTeam.equals(inviteeTeam)) {
-            inviter.sendMessage("§cأنت واللاعب الآخر في نفس الفريق بالفعل.");
-            return false;
-        }
-
-        // شروط الحجم
-        if (inviterTeam.getMembers().size() >= 4) {
-            inviter.sendMessage("§cفريقك مكتمل 4 لاعبين.");
-            return false;
-        }
-
-        // دمج أعضاء فريق invitee في فريق inviter
-        for (UUID memberUUID : inviteeTeam.getMembers()) {
-            playerTeams.put(memberUUID, inviterTeam);
-            inviterTeam.addMember(memberUUID);
-        }
-
-        // تحديث قائد الفريق ليكون الداعي
-        inviterTeam.setLeader(inviter.getUniqueId());
-
-        inviter.sendMessage("§aتم قبول الدعوة، أنت الآن قائد الفريق.");
-        invitee.sendMessage("§aتم ضمك لفريق " + inviter.getName() + ".");
-
-        return true;
-    }
-
-    // خروج لاعب من التيم: يرجع لتيمه الخاص و قائد نفسه
-    public void leaveTeam(Player player) {
-        Team oldTeam = playerTeams.get(player.getUniqueId());
-        if (oldTeam == null) return;
-
-        // إزالة اللاعب من الفريق القديم
-        oldTeam.removeMember(player.getUniqueId());
-        playerTeams.remove(player.getUniqueId());
-
-        // إذا كان اللاعب هو القائد و الفريق صار فارغ، نحذف الفريق من الماب (كل اللاعبين فيه)
-        if (oldTeam.isLeader(player.getUniqueId()) && oldTeam.getMembers().isEmpty()) {
-            // حذف كل أعضاء الفريق من playerTeams
-            for (UUID memberUUID : new HashSet<>(oldTeam.getMembers())) {
-                playerTeams.remove(memberUUID);
-            }
-            return;
-        }
-
-        // إنشاء تيم خاص جديد لللاعب وهو القائد
-        Team newTeam = new Team(player.getUniqueId());
-        playerTeams.put(player.getUniqueId(), newTeam);
-        player.sendMessage("§aخرجت من الفريق وتم إنشاء فريق خاص بك.");
+        this.inviteManager = inviteManager;
     }
 
     public Team getTeam(Player player) {
         return playerTeams.get(player.getUniqueId());
     }
 
-    public void removePlayer(Player player) {
-        playerTeams.remove(player.getUniqueId());
+    public boolean isInTeam(Player player) {
+        return playerTeams.containsKey(player.getUniqueId());
+    }
+
+    public Team createTeam(Player leader) {
+        Team team = new Team(leader.getUniqueId());
+        playerTeams.put(leader.getUniqueId(), team);
+        return team;
+    }
+
+    public void addPlayerToTeam(Player player, Team team) {
+        team.addMember(player.getUniqueId());
+        playerTeams.put(player.getUniqueId(), team);
+    }
+
+    public void removePlayerFromTeam(Player player) {
+        Team team = playerTeams.get(player.getUniqueId());
+        if (team != null) {
+            team.removeMember(player.getUniqueId());
+            playerTeams.remove(player.getUniqueId());
+
+            if (team.isLeader(player.getUniqueId())) {
+                if (!team.getMembers().isEmpty()) {
+                    UUID newLeader = team.getMembers().iterator().next();
+                    team.setLeader(newLeader);
+                    // You can notify the new leader here if you want
+                } else {
+                    // Team empty, remove all references (optional)
+                }
+            }
+        }
+    }
+
+    public boolean invite(Player inviter, Player invitee) {
+        Team inviterTeam = playerTeams.get(inviter.getUniqueId());
+        if (inviterTeam == null) {
+            inviter.sendMessage("§cأنت لست في فريق لتدعوه.");
+            return false;
+        }
+        if (playerTeams.containsKey(invitee.getUniqueId())) {
+            inviter.sendMessage("§cاللاعب في فريق بالفعل.");
+            return false;
+        }
+        if (inviterTeam.getMembers().size() >= 4) {
+            inviter.sendMessage("§cفريقك ممتلئ.");
+            return false;
+        }
+
+        inviteManager.addInvite(invitee, inviter);
+        inviter.sendMessage("§aتم إرسال الدعوة.");
+        invitee.sendMessage("§aلديك دعوة من " + inviter.getName() + " اكتب /team accept للانضمام.");
+        return true;
+    }
+
+    public void acceptInvite(Player invitee) {
+        if (!inviteManager.hasInvite(invitee)) {
+            invitee.sendMessage("§cليس لديك دعوة.");
+            return;
+        }
+        UUID inviterUUID = inviteManager.getInviterUUID(invitee);
+        Team inviterTeam = playerTeams.get(inviterUUID);
+        if (inviterTeam == null) {
+            invitee.sendMessage("§cفريق الداعي غير موجود.");
+            inviteManager.removeInvite(invitee);
+            return;
+        }
+        if (inviterTeam.getMembers().size() >= 4) {
+            invitee.sendMessage("§cفريق الداعي ممتلئ.");
+            inviteManager.removeInvite(invitee);
+            return;
+        }
+
+        addPlayerToTeam(invitee, inviterTeam);
+        inviteManager.removeInvite(invitee);
+        invitee.sendMessage("§aانضممت إلى الفريق.");
+    }
+
+    public void leaveTeam(Player player) {
+        removePlayerFromTeam(player);
+        player.sendMessage("§aخرجت من الفريق.");
+        createTeam(player);
+        player.sendMessage("§aتم إنشاء فريق خاص بك.");
+    }
+
+    public void promote(Player leader, Player target) {
+        Team team = playerTeams.get(leader.getUniqueId());
+        if (team == null || !team.isLeader(leader.getUniqueId())) {
+            leader.sendMessage("§cأنت لست قائد الفريق.");
+            return;
+        }
+        if (!team.getMembers().contains(target.getUniqueId())) {
+            leader.sendMessage("§cاللاعب ليس في فريقك.");
+            return;
+        }
+        team.setLeader(target.getUniqueId());
+        leader.sendMessage("§aتم ترقية " + target.getName() + " إلى قائد الفريق.");
+        target.sendMessage("§aتمت ترقيتك إلى قائد الفريق.");
+    }
+
+    public void kick(Player leader, Player target) {
+        Team team = playerTeams.get(leader.getUniqueId());
+        if (team == null || !team.isLeader(leader.getUniqueId())) {
+            leader.sendMessage("§cأنت لست قائد الفريق.");
+            return;
+        }
+        if (!team.getMembers().contains(target.getUniqueId())) {
+            leader.sendMessage("§cاللاعب ليس في فريقك.");
+            return;
+        }
+        team.removeMember(target.getUniqueId());
+        playerTeams.remove(target.getUniqueId());
+
+        leader.sendMessage("§aتم طرد " + target.getName() + " من الفريق.");
+        target.sendMessage("§cتم طردك من الفريق.");
+    }
+
+    public void disband(Player leader) {
+        Team team = playerTeams.get(leader.getUniqueId());
+        if (team == null || !team.isLeader(leader.getUniqueId())) {
+            leader.sendMessage("§cأنت لست قائد الفريق.");
+            return;
+        }
+        for (UUID memberUUID : new HashSet<>(team.getMembers())) {
+            Player member = plugin.getServer().getPlayer(memberUUID);
+            if (member != null && member.isOnline()) {
+                member.sendMessage("§cتم حل الفريق من قبل القائد.");
+            }
+            playerTeams.remove(memberUUID);
+        }
+        playerTeams.remove(leader.getUniqueId());
+        leader.sendMessage("§aتم حل الفريق.");
     }
 }

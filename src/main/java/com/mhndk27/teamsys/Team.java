@@ -7,24 +7,25 @@ import java.util.UUID;
 public class Team {
 
     private UUID leader;
-    private final Set<UUID> members;
+    private final Set<UUID> members = new HashSet<>();
 
     public Team(UUID leader) {
         this.leader = leader;
-        this.members = new HashSet<>();
-        this.members.add(leader);
+        members.add(leader);
     }
 
     public UUID getLeader() {
         return leader;
     }
 
-    public void setLeader(UUID leader) {
-        this.leader = leader;
+    public void setLeader(UUID newLeader) {
+        if (members.contains(newLeader)) {
+            this.leader = newLeader;
+        }
     }
 
     public Set<UUID> getMembers() {
-        return members;
+        return new HashSet<>(members);
     }
 
     public void addMember(UUID playerUUID) {
@@ -33,12 +34,6 @@ public class Team {
 
     public void removeMember(UUID playerUUID) {
         members.remove(playerUUID);
-        if (leader.equals(playerUUID)) {
-            if (!members.isEmpty()) {
-                // عين قائد جديد عشوائي
-                leader = members.iterator().next();
-            }
-        }
     }
 
     public boolean isLeader(UUID playerUUID) {
