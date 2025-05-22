@@ -154,25 +154,23 @@ public class PartyCommand implements CommandExecutor {
                     player.sendMessage(MessageUtils.error("You are not in a party."));
                     return true;
                 }
-
                 Party party = partyManager.getParty(playerUUID);
                 boolean wasLeader = party.isLeader(playerUUID);
-
                 partyManager.leaveParty(playerUUID);
                 TeleportUtils.teleportToLobby(player);
                 player.sendMessage(MessageUtils.success("You left the party."));
-
-                // إذا اللي غادر كان قائد
-                if (wasLeader && party.getMembers().size() > 0) {
-                    UUID newLeaderUUID = party.getMembers().iterator().next();
-                    party.setLeader(newLeaderUUID);
-
+                
+                if (wasLeader) {
+                    // تعيين أول عضو كقائد جديد
+                    UUID newLeaderUUID = party.getMembers().iterator().next(); // الحصول على أول عضو
+                    party.setLeader(newLeaderUUID); // تعيينه كقائد
                     Player newLeader = Bukkit.getPlayer(newLeaderUUID);
                     if (newLeader != null) {
                         newLeader.sendMessage(MessageUtils.success("You have been promoted to party leader because the previous leader left."));
                     }
                 }
             }
+
 
             case "promote" -> {
                 if (args.length < 2) {

@@ -1,6 +1,7 @@
 com\mhndk27\partysys\utils\TeleportUtils.class
 com\mhndk27\partysys\chat\PartyChatManager.class
 com\mhndk27\partysys\commands\PartyCommand.class
+com\mhndk27\partysys\PartyManager$InviteData.class
 com\mhndk27\partysys\commands\PartyTabCompleter.class
 com\mhndk27\partysys\PartySystemPlugin.class
 com\mhndk27\partysys\listeners\PlayerQuitListener.class
