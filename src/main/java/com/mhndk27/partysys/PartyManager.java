@@ -15,10 +15,8 @@ public class PartyManager {
     private final Map<UUID, Party> playerPartyMap = new HashMap<>();
     private final Set<Party> parties = new HashSet<>();
 
-    // نظام الدعوات: UUID اللاعب المدعو => بيانات الدعوة
     private final Map<UUID, InviteData> pendingInvites = new ConcurrentHashMap<>();
 
-    // إحداثيات اللوبي الثابتة (مثلاً 0,7,0)
     private final Location lobbyLocation = new Location(Bukkit.getWorld("world"), 0, 7, 0);
 
     public static class InviteData {
@@ -38,8 +36,6 @@ public class PartyManager {
             return expireTime;
         }
     }
-
-    // ======= إدارة البارتيات =======
 
     public Party getParty(UUID playerUUID) {
         return playerPartyMap.get(playerUUID);
@@ -68,13 +64,14 @@ public class PartyManager {
             playerPartyMap.remove(member);
             Player p = Bukkit.getPlayer(member);
             if (p != null) {
-                TeleportUtils.teleportToLocation(p, lobbyLocation); // نقل اللاعب للوبّي تلقائي
+                TeleportUtils.teleportToLocation(p, lobbyLocation);
                 p.sendMessage(MessageUtils.info("You have been teleported to the lobby because the party was disbanded."));
             }
         }
         parties.remove(party);
     }
 
+    // ===== تفعيل وتعطيل الشات =====
     private final Set<UUID> partyChatEnabled = new HashSet<>();
 
     public boolean togglePartyChat(UUID playerUUID) {
@@ -91,12 +88,12 @@ public class PartyManager {
         return partyChatEnabled.contains(playerUUID);
     }
 
-
     public boolean addMember(UUID leaderUUID, UUID targetUUID) {
         Party party = getParty(leaderUUID);
         if (party == null || !party.isLeader(leaderUUID)) return false;
         if (isInParty(targetUUID)) return false;
         if (party.isFull()) return false;
+
         boolean added = party.addMember(targetUUID);
         if (added) addParty(party);
         return added;
@@ -106,6 +103,7 @@ public class PartyManager {
         Party party = getParty(leaderUUID);
         if (party == null || !party.isLeader(leaderUUID)) return false;
         if (!party.contains(targetUUID)) return false;
+
         boolean removed = party.removeMember(targetUUID);
         if (removed) {
             playerPartyMap.remove(targetUUID);
@@ -118,7 +116,6 @@ public class PartyManager {
         return removed;
     }
 
-    // مغادرة اللاعب للبارتي (مع تحديث القائد)
     public boolean leaveParty(UUID playerUUID) {
         Party party = getParty(playerUUID);
         if (party == null) return false;
@@ -136,7 +133,6 @@ public class PartyManager {
         if (party.getMembers().isEmpty()) {
             removeParty(party);
         } else if (isLeader) {
-            // تعيين أول عضو كقائد جديد
             UUID newLeaderUUID = party.getMembers().iterator().next();
             party.setLeader(newLeaderUUID);
             Player newLeader = Bukkit.getPlayer(newLeaderUUID);
@@ -151,6 +147,7 @@ public class PartyManager {
         Party party = getParty(currentLeaderUUID);
         if (party == null || !party.isLeader(currentLeaderUUID)) return false;
         if (!party.contains(newLeaderUUID)) return false;
+
         party.transferLeadership(newLeaderUUID);
         return true;
     }
@@ -169,10 +166,10 @@ public class PartyManager {
         return (player != null) ? player.getUniqueId() : null;
     }
 
-    // ======== نظام الدعوات ========
+    // ===== نظام الدعوات =====
 
     public void addInvite(UUID targetUUID, UUID leaderUUID) {
-        long expireTime = System.currentTimeMillis() + 60_000; // 60 ثانية
+        long expireTime = System.currentTimeMillis() + 60_000;
         pendingInvites.put(targetUUID, new InviteData(leaderUUID, expireTime));
     }
 
@@ -194,7 +191,7 @@ public class PartyManager {
         pendingInvites.remove(targetUUID);
     }
 
-    // ======== القبول والرفض ========
+    // ===== قبول ورفض الدعوة =====
 
     public boolean acceptInvite(UUID targetUUID) {
         if (!hasInvite(targetUUID)) return false;
@@ -216,6 +213,7 @@ public class PartyManager {
             if (player != null) {
                 player.sendMessage(MessageUtils.success("You joined the party!"));
             }
+
             Player leader = Bukkit.getPlayer(invite.getLeaderUUID());
             if (leader != null) {
                 leader.sendMessage(MessageUtils.info(getPlayerName(targetUUID) + " joined your party."));
