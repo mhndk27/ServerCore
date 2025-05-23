@@ -1,5 +1,7 @@
 package com.mhndk27.partysys;
 
+import org.bukkit.Location;
+
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -9,8 +11,10 @@ public class Party {
 
     private UUID leaderUUID;
     private final Set<UUID> members = new HashSet<>();
-
     private static final int MAX_MEMBERS = 4;
+
+    // ✅ إضافة: موقع الميني قيم إذا البارتي داخلها
+    private Location activeMiniGameLocation;
 
     public Party(UUID leaderUUID) {
         this.leaderUUID = leaderUUID;
@@ -48,5 +52,23 @@ public class Party {
 
     public boolean contains(UUID playerUUID) {
         return members.contains(playerUUID);
+    }
+
+    // ✅ Getter & Setter لمكان الميني قيم
+    public Location getMiniGameLocation() {
+        return activeMiniGameLocation;
+    }
+
+    public void setMiniGameLocation(Location location) {
+        this.activeMiniGameLocation = location;
+    }
+
+    public boolean isInMiniGame() {
+        return activeMiniGameLocation != null;
+    }
+
+    // ✅ مفيد عند نهاية الميني قيم
+    public void clearMiniGameLocation() {
+        this.activeMiniGameLocation = null;
     }
 }
