@@ -47,9 +47,5 @@ public class Party {
         return members.size() >= 4;
     }
 
-    public void transferLeadership(UUID newLeaderUUID) {
-        if (members.contains(newLeaderUUID)) {
-            this.leaderUUID = newLeaderUUID;
-        }
-    }
+    // أزلت دالة transferLeadership ودمجتها في setLeader()
 }

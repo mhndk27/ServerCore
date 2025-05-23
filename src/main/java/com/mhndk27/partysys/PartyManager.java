@@ -171,9 +171,10 @@ public class PartyManager {
         if (party == null || !party.isLeader(currentLeaderUUID)) return false;
         if (!party.contains(newLeaderUUID)) return false;
 
-        party.transferLeadership(newLeaderUUID);
+        party.setLeader(newLeaderUUID);  // تعديل هنا
         return true;
     }
+
 
     public boolean isInAnyParty(UUID playerUUID) {
         return isInParty(playerUUID);
