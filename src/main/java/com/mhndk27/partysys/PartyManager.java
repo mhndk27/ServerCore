@@ -2,7 +2,6 @@ package com.mhndk27.partysys;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import net.kyori.adventure.text.Component;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -10,6 +9,8 @@ import org.bukkit.entity.Player;
 
 import com.mhndk27.partysys.utils.MessageUtils;
 import com.mhndk27.partysys.utils.TeleportUtils;
+
+import net.kyori.adventure.text.Component;
 
 public class PartyManager {
 
@@ -20,7 +21,7 @@ public class PartyManager {
 
     private final Location lobbyLocation = new Location(Bukkit.getWorld("world"), 0, 7, 0);
 
-    // ===== نظام الشات الخاص بالبارتي =====
+    // ===== Party Chat =====
     private final Set<UUID> partyChatEnabled = new HashSet<>();
 
     public static class InviteData {
@@ -41,6 +42,8 @@ public class PartyManager {
         }
     }
 
+    // ===== Getters =====
+
     public Party getParty(UUID playerUUID) {
         return playerPartyMap.get(playerUUID);
     }
@@ -48,6 +51,8 @@ public class PartyManager {
     public boolean isInParty(UUID playerUUID) {
         return playerPartyMap.containsKey(playerUUID);
     }
+
+    // ===== Create and Manage Parties =====
 
     public Party createParty(UUID leaderUUID) {
         if (isInParty(leaderUUID)) return null;
@@ -75,7 +80,7 @@ public class PartyManager {
         parties.remove(party);
     }
 
-    // ===== تفعيل وتعطيل الشات =====
+    // ===== Party Chat Toggle =====
 
     public boolean togglePartyChat(UUID playerUUID) {
         if (partyChatEnabled.contains(playerUUID)) {
@@ -91,25 +96,27 @@ public class PartyManager {
         return partyChatEnabled.contains(playerUUID);
     }
 
-    // دالة لإرسال رسالة شات لأعضاء البارتي فقط
-
-    public void sendPartyChatMessage(UUID senderUUID, String message) {
+    // ===== Party Chat Messaging =====
+    public void sendPartyMessage(Player sender, String message) {
+        UUID senderUUID = sender.getUniqueId();
         Party party = getParty(senderUUID);
-        if (party == null) return;
 
-        Player sender = Bukkit.getPlayer(senderUUID);
-        if (sender == null) return;
+        if (party == null) {
+            sender.sendMessage(MessageUtils.error("You are not in a party."));
+            return;
+        }
 
-        Component formattedMessage = MessageUtils.partyChat(sender.getName(), message);
+        Component formattedMessage = MessageUtils.partyChat(sender.getName(), message); // ✅ هنا التعديل
 
         for (UUID memberUUID : party.getMembers()) {
             Player member = Bukkit.getPlayer(memberUUID);
-            if (member != null && isPartyChatEnabled(memberUUID)) {
-                member.sendMessage(formattedMessage);
+            if (member != null) {
+                member.sendMessage(formattedMessage); // ✅ الآن يرسل Component
             }
         }
     }
 
+    // ===== Members Management =====
 
     public boolean addMember(UUID leaderUUID, UUID targetUUID) {
         Party party = getParty(leaderUUID);
@@ -171,14 +178,20 @@ public class PartyManager {
         if (party == null || !party.isLeader(currentLeaderUUID)) return false;
         if (!party.contains(newLeaderUUID)) return false;
 
-        party.setLeader(newLeaderUUID);  // تعديل هنا
+        party.setLeader(newLeaderUUID);
+
+        Player newLeader = Bukkit.getPlayer(newLeaderUUID);
+        if (newLeader != null) {
+            newLeader.sendMessage(MessageUtils.success("You have been promoted to party leader."));
+        }
         return true;
     }
-
 
     public boolean isInAnyParty(UUID playerUUID) {
         return isInParty(playerUUID);
     }
+
+    // ===== Player Info Helpers =====
 
     public String getPlayerName(UUID playerUUID) {
         Player player = Bukkit.getPlayer(playerUUID);
@@ -190,10 +203,10 @@ public class PartyManager {
         return (player != null) ? player.getUniqueId() : null;
     }
 
-    // ===== نظام الدعوات =====
+    // ===== Invitations =====
 
     public void addInvite(UUID targetUUID, UUID leaderUUID) {
-        long expireTime = System.currentTimeMillis() + 60_000;
+        long expireTime = System.currentTimeMillis() + 60_000; // 60 seconds expiration
         pendingInvites.put(targetUUID, new InviteData(leaderUUID, expireTime));
     }
 
@@ -215,7 +228,7 @@ public class PartyManager {
         pendingInvites.remove(targetUUID);
     }
 
-    // ===== قبول ورفض الدعوة =====
+    // ===== Accept & Deny Invites =====
 
     public boolean acceptInvite(UUID targetUUID) {
         if (!hasInvite(targetUUID)) return false;
@@ -225,6 +238,10 @@ public class PartyManager {
 
         if (leaderParty == null || leaderParty.isFull()) {
             removeInvite(targetUUID);
+            Player player = Bukkit.getPlayer(targetUUID);
+            if (player != null) {
+                player.sendMessage(MessageUtils.error("The party is no longer available or full."));
+            }
             return false;
         }
 
