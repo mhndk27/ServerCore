@@ -18,10 +18,9 @@ public class PartyManager {
     private final Set<Party> parties = new HashSet<>();
 
     private final Map<UUID, InviteData> pendingInvites = new ConcurrentHashMap<>();
+    private final Set<UUID> partyChatEnabled = new HashSet<>();
 
     private final Location lobbyLocation = new Location(Bukkit.getWorld("world"), 0, 7, 0);
-
-    private final Set<UUID> partyChatEnabled = new HashSet<>();
 
     public static class InviteData {
         private final UUID leaderUUID;
@@ -70,6 +69,8 @@ public class PartyManager {
     public void removeParty(Party party) {
         for (UUID member : party.getMembers()) {
             playerPartyMap.remove(member);
+            partyChatEnabled.remove(member); // ⛔ نوقف الشات عن كل الأعضاء
+
             Player p = Bukkit.getPlayer(member);
             if (p != null) {
                 TeleportUtils.teleportToLocation(p, lobbyLocation);
@@ -82,6 +83,14 @@ public class PartyManager {
     // ===== Party Chat Toggle =====
 
     public boolean togglePartyChat(UUID playerUUID) {
+        if (!isInParty(playerUUID)) {
+            Player player = Bukkit.getPlayer(playerUUID);
+            if (player != null) {
+                player.sendMessage(MessageUtils.error("You must be in a party to use party chat."));
+            }
+            return false;
+        }
+
         if (partyChatEnabled.contains(playerUUID)) {
             partyChatEnabled.remove(playerUUID);
             return false;
@@ -96,6 +105,7 @@ public class PartyManager {
     }
 
     // ===== Party Chat Messaging =====
+
     public void sendPartyMessage(Player sender, String message) {
         UUID senderUUID = sender.getUniqueId();
         Party party = getParty(senderUUID);
@@ -136,6 +146,8 @@ public class PartyManager {
         boolean removed = party.removeMember(targetUUID);
         if (removed) {
             playerPartyMap.remove(targetUUID);
+            partyChatEnabled.remove(targetUUID); // ⛔ نلغي الشات عن المطرود
+
             Player p = Bukkit.getPlayer(targetUUID);
             if (p != null) {
                 TeleportUtils.teleportToLocation(p, lobbyLocation);
@@ -152,6 +164,7 @@ public class PartyManager {
         boolean isLeader = party.isLeader(playerUUID);
         party.removeMember(playerUUID);
         playerPartyMap.remove(playerUUID);
+        partyChatEnabled.remove(playerUUID); // ⛔ نلغي الشات عن اللي طلع
 
         Player player = Bukkit.getPlayer(playerUUID);
         if (player != null) {
@@ -205,7 +218,7 @@ public class PartyManager {
     // ===== Invitations =====
 
     public void addInvite(UUID targetUUID, UUID leaderUUID) {
-        long expireTime = System.currentTimeMillis() + 60_000; // 60 ثانية صلاحية الدعوة
+        long expireTime = System.currentTimeMillis() + 60_000;
         pendingInvites.put(targetUUID, new InviteData(leaderUUID, expireTime));
     }
 
@@ -281,5 +294,4 @@ public class PartyManager {
         }
         return true;
     }
-
 }

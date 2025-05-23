@@ -18,13 +18,20 @@ public class PartyChatListener implements Listener {
     @SuppressWarnings("deprecation")
     public void onChat(AsyncPlayerChatEvent event) {
         Player sender = event.getPlayer();
+        boolean isEnabled = partyManager.isPartyChatEnabled(sender.getUniqueId());
 
-        if (!partyManager.isPartyChatEnabled(sender.getUniqueId())) return;
+        // ✅ إذا مفعل الشات لكن مو في بارتي → نلغيه مباشرة
+        if (isEnabled && !partyManager.isInParty(sender.getUniqueId())) {
+            partyManager.togglePartyChat(sender.getUniqueId()); // نلغي التفعيل
+            sender.sendMessage("§cYou are no longer in a party. Party chat has been disabled.");
+            return;
+        }
 
-        event.setCancelled(true); // ✅ نوقف الشات العام
+        // ✅ إذا الشات مو مفعل ما نسوي شيء
+        if (!isEnabled) return;
 
-        String message = event.getMessage(); // ✅ الرسالة النصية
-
+        event.setCancelled(true); // نوقف الشات العام
+        String message = event.getMessage();
         partyManager.sendPartyMessage(sender, message);
     }
 }
