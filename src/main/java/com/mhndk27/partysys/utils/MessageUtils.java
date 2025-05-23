@@ -21,7 +21,7 @@ public class MessageUtils {
         return prefix().append(Component.text(msg, NamedTextColor.YELLOW));
     }
 
-    // الدالة الجديدة للدردشة الخاصة بالبارتي
+    // رسالة دردشة خاصة بالبارتي بألوان واضحة
     public static Component partyChat(String playerName, String message) {
         return prefix()
                 .append(Component.text(playerName, NamedTextColor.BLUE))

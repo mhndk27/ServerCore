@@ -13,12 +13,12 @@ public class TeleportUtils {
 
     public static void teleportToLobby(Player player) {
         if (player == null) return;
-        World world = Bukkit.getWorlds().get(0); // Assuming first world is main world
+        World world = Bukkit.getWorlds().get(0); // الافتراض أن العالم الأول هو العالم الرئيسي
         Location lobbyLocation = new Location(world, LOBBY_X, LOBBY_Y, LOBBY_Z);
         player.teleport(lobbyLocation);
     }
 
-    // أضف هذه الطريقة عشان تلبي الطلب في PartyManager.java
+    // دالة تليبورتر عامة لأي مكان
     public static void teleportToLocation(Player player, Location location) {
         if (player == null || location == null) return;
         player.teleport(location);

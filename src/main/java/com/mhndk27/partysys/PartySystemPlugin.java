@@ -15,16 +15,18 @@ public class PartySystemPlugin extends JavaPlugin {
     public void onEnable() {
         partyManager = new PartyManager();
 
+        // تسجيل الأمر مع التنفيذ والتنقيح (TabCompleter)
         getCommand("party").setExecutor(new PartyCommand(partyManager));
-        getCommand("party").setTabCompleter(new PartyTabCompleter(partyManager));  // هنا التعديل
+        getCommand("party").setTabCompleter(new PartyTabCompleter(partyManager)); // تعديل احترافي
+
+        // تسجيل المستمعين للأحداث
         getServer().getPluginManager().registerEvents(new PartyChatListener(partyManager), this);
-        
         getServer().getPluginManager().registerEvents(new PlayerQuitListener(partyManager), this);
         getServer().getPluginManager().registerEvents(new PlayerJoinListener(partyManager), this);
     }
 
     @Override
     public void onDisable() {
-        // تنظيف إذا احتاج الأمر
+        // ممكن تضيف تنظيف لو احتاج الأمر هنا
     }
 }

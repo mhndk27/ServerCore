@@ -1,11 +1,16 @@
 package com.mhndk27.partysys;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 
 public class Party {
 
     private UUID leaderUUID;
     private final Set<UUID> members = new HashSet<>();
+
+    private static final int MAX_MEMBERS = 4;
 
     public Party(UUID leaderUUID) {
         this.leaderUUID = leaderUUID;
@@ -16,22 +21,24 @@ public class Party {
         return leaderUUID;
     }
 
-    public void setLeader(UUID newLeaderUUID) {
-        if (members.contains(newLeaderUUID)) {
-            this.leaderUUID = newLeaderUUID;
-        }
-    }
-
-    public boolean isLeader(UUID playerUUID) {
-        return leaderUUID.equals(playerUUID);
+    public void setLeader(UUID leaderUUID) {
+        this.leaderUUID = leaderUUID;
     }
 
     public Set<UUID> getMembers() {
         return Collections.unmodifiableSet(members);
     }
 
+    public boolean isLeader(UUID playerUUID) {
+        return leaderUUID.equals(playerUUID);
+    }
+
+    public boolean isFull() {
+        return members.size() >= MAX_MEMBERS;
+    }
+
     public boolean addMember(UUID playerUUID) {
-        if (members.size() >= 4) return false; // حد الأعضاء 4
+        if (isFull()) return false;
         return members.add(playerUUID);
     }
 
@@ -42,10 +49,4 @@ public class Party {
     public boolean contains(UUID playerUUID) {
         return members.contains(playerUUID);
     }
-
-    public boolean isFull() {
-        return members.size() >= 4;
-    }
-
-    // أزلت دالة transferLeadership ودمجتها في setLeader()
 }

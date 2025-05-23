@@ -21,7 +21,6 @@ public class PartyManager {
 
     private final Location lobbyLocation = new Location(Bukkit.getWorld("world"), 0, 7, 0);
 
-    // ===== Party Chat =====
     private final Set<UUID> partyChatEnabled = new HashSet<>();
 
     public static class InviteData {
@@ -52,7 +51,7 @@ public class PartyManager {
         return playerPartyMap.containsKey(playerUUID);
     }
 
-    // ===== Create and Manage Parties =====
+    // ===== Party Creation and Management =====
 
     public Party createParty(UUID leaderUUID) {
         if (isInParty(leaderUUID)) return null;
@@ -106,12 +105,12 @@ public class PartyManager {
             return;
         }
 
-        Component formattedMessage = MessageUtils.partyChat(sender.getName(), message); // ✅ هنا التعديل
+        Component formattedMessage = MessageUtils.partyChat(sender.getName(), message);
 
         for (UUID memberUUID : party.getMembers()) {
             Player member = Bukkit.getPlayer(memberUUID);
             if (member != null) {
-                member.sendMessage(formattedMessage); // ✅ الآن يرسل Component
+                member.sendMessage(formattedMessage);
             }
         }
     }
@@ -206,7 +205,7 @@ public class PartyManager {
     // ===== Invitations =====
 
     public void addInvite(UUID targetUUID, UUID leaderUUID) {
-        long expireTime = System.currentTimeMillis() + 60_000; // 60 seconds expiration
+        long expireTime = System.currentTimeMillis() + 60_000; // 60 ثانية صلاحية الدعوة
         pendingInvites.put(targetUUID, new InviteData(leaderUUID, expireTime));
     }
 
@@ -257,20 +256,30 @@ public class PartyManager {
 
             Player leader = Bukkit.getPlayer(invite.getLeaderUUID());
             if (leader != null) {
-                leader.sendMessage(MessageUtils.info(getPlayerName(targetUUID) + " joined your party."));
+                leader.sendMessage(MessageUtils.info(getPlayerName(targetUUID) + " joined the party."));
             }
 
             return true;
         }
-
         return false;
     }
 
-    public void denyInvite(UUID targetUUID) {
+    public boolean denyInvite(UUID targetUUID) {
+        if (!hasInvite(targetUUID)) return false;
+
+        InviteData invite = getInviteData(targetUUID);
         removeInvite(targetUUID);
+
         Player player = Bukkit.getPlayer(targetUUID);
         if (player != null) {
-            player.sendMessage(MessageUtils.error("You denied the party invite."));
+            player.sendMessage(MessageUtils.info("You denied the party invite."));
         }
+
+        Player leader = Bukkit.getPlayer(invite.getLeaderUUID());
+        if (leader != null) {
+            leader.sendMessage(MessageUtils.info(getPlayerName(targetUUID) + " denied the party invite."));
+        }
+        return true;
     }
+
 }
