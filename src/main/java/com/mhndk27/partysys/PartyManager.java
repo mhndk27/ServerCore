@@ -2,6 +2,7 @@ package com.mhndk27.partysys;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import net.kyori.adventure.text.Component;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -18,6 +19,9 @@ public class PartyManager {
     private final Map<UUID, InviteData> pendingInvites = new ConcurrentHashMap<>();
 
     private final Location lobbyLocation = new Location(Bukkit.getWorld("world"), 0, 7, 0);
+
+    // ===== نظام الشات الخاص بالبارتي =====
+    private final Set<UUID> partyChatEnabled = new HashSet<>();
 
     public static class InviteData {
         private final UUID leaderUUID;
@@ -72,7 +76,6 @@ public class PartyManager {
     }
 
     // ===== تفعيل وتعطيل الشات =====
-    private final Set<UUID> partyChatEnabled = new HashSet<>();
 
     public boolean togglePartyChat(UUID playerUUID) {
         if (partyChatEnabled.contains(playerUUID)) {
@@ -87,6 +90,26 @@ public class PartyManager {
     public boolean isPartyChatEnabled(UUID playerUUID) {
         return partyChatEnabled.contains(playerUUID);
     }
+
+    // دالة لإرسال رسالة شات لأعضاء البارتي فقط
+
+    public void sendPartyChatMessage(UUID senderUUID, String message) {
+        Party party = getParty(senderUUID);
+        if (party == null) return;
+
+        Player sender = Bukkit.getPlayer(senderUUID);
+        if (sender == null) return;
+
+        Component formattedMessage = MessageUtils.partyChat(sender.getName(), message);
+
+        for (UUID memberUUID : party.getMembers()) {
+            Player member = Bukkit.getPlayer(memberUUID);
+            if (member != null && isPartyChatEnabled(memberUUID)) {
+                member.sendMessage(formattedMessage);
+            }
+        }
+    }
+
 
     public boolean addMember(UUID leaderUUID, UUID targetUUID) {
         Party party = getParty(leaderUUID);

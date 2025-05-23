@@ -20,4 +20,12 @@ public class MessageUtils {
     public static Component info(String msg) {
         return prefix().append(Component.text(msg, NamedTextColor.YELLOW));
     }
+
+    // الدالة الجديدة للدردشة الخاصة بالبارتي
+    public static Component partyChat(String playerName, String message) {
+        return prefix()
+                .append(Component.text(playerName, NamedTextColor.BLUE))
+                .append(Component.text(": ", NamedTextColor.WHITE))
+                .append(Component.text(message, NamedTextColor.WHITE));
+    }
 }
