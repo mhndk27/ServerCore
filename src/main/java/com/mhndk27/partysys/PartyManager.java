@@ -294,4 +294,22 @@ public class PartyManager {
         }
         return true;
     }
+
+        // هل اللاعب قائد بارتي؟
+    public boolean isLeader(UUID uuid) {
+        Party party = getParty(uuid);
+        return party != null && party.getLeaderUUID().equals(uuid);
+    }
+
+    // جلب كل أعضاء البارتي
+    public List<UUID> getPartyMembers(UUID uuid) {
+        Party party = getParty(uuid);
+        return party != null ? new ArrayList<>(party.getMembers()) : Collections.emptyList();
+    }
+
+    // جلب كائن البارتي
+    public Party getPartyByLeader(UUID leader) {
+        Party party = getParty(leader);
+        return party != null && party.getLeaderUUID().equals(leader) ? party : null;
+    }
 }
