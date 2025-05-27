@@ -7,7 +7,7 @@
       "default": true
     }
   ],
-  "java.configuration.updateBuildConfiguration": "interactive",
+  "java.configuration.updateBuildConfiguration": "automatic",
   "maven.executable.path": "C:/Program Files/apache-maven-3.9.9/bin/mvn", // عيّن مسار Maven إذا مطلوب
   "files.exclude": {
     "**/target": true,

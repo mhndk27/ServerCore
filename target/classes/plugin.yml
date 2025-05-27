@@ -1,13 +1,12 @@
-name: PartySystem
-main: com.mhndk27.partysys.PartySystemPlugin
+name: minigames
+main: com.mhndk27.minigames.MiniGamesPlugin
 version: 1.0
 api-version: 1.20
+depend: [WorldEdit, PartySystem]
 commands:
-  party:
-    description: Manage parties
-    usage: /party <create|invite|kick|leave|promote|disband|chat|accept|deny>
-    permission: partysys.use
+  minigame:
+    description: Main command for minigames
 permissions:
-  partysys.use:
-    description: Allows using party commands
+  minigames.use:
+    description: Allows use of minigames commands
     default: true
