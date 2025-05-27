@@ -7,7 +7,7 @@ import com.mhndk27.partysys.listeners.PlayerJoinListener;
 import com.mhndk27.partysys.listeners.PlayerQuitListener;
 import org.bukkit.plugin.java.JavaPlugin;
 
-public class PartySystemPlugin extends JavaPlugin {
+public class PartySystem extends JavaPlugin {
 
     private PartyManager partyManager;
 

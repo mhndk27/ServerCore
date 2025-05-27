@@ -1,5 +1,5 @@
 name: PartySystem
-main: com.mhndk27.partysys.PartySystemPlugin
+main: com.mhndk27.partysys.PartySystem
 version: 1.0
 api-version: 1.20
 commands:
