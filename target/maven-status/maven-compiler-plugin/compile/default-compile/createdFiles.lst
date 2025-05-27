@@ -1,11 +1,12 @@
 com\mhndk27\minigames\arenas\ArenaBuilder.class
-com\mhndk27\minigames\listeners\NPCInteractionListener.class
 com\mhndk27\minigames\api\MiniGameAPI.class
 com\mhndk27\minigames\utils\TeleportUtils.class
 com\mhndk27\minigames\arenas\WaitingRoom.class
+com\mhndk27\minigames\commands\ReturnToLobbyCommand.class
 com\mhndk27\minigames\arenas\WaitingRoomManager.class
 com\mhndk27\minigames\game\GameSession.class
 com\mhndk27\minigames\utils\SchematicUtils.class
 com\mhndk27\minigames\utils\LocationUtils.class
+com\mhndk27\minigames\commands\ZombieShooterCommand.class
 com\mhndk27\minigames\integration\PartyIntegration.class
 com\mhndk27\minigames\MiniGamesPlugin.class

@@ -1,13 +1,11 @@
 name: minigames
-main: com.mhndk27.minigames.MiniGamesPlugin
 version: 1.0
+main: com.mhndk27.minigames.MiniGamesPlugin
 api-version: 1.20
-depend: [WorldEdit]
-softdepend: [PartySystem]
 commands:
   minigame:
-    description: Main command for minigames
-permissions:
-  minigames.use:
-    description: Allows use of minigames commands
-    default: true
+    description: Main minigame command
+    usage: /<command>
+  startgame:
+    description: Start a minigame session
+    usage: /startgame
