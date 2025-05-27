@@ -2,7 +2,8 @@ name: minigames
 main: com.mhndk27.minigames.MiniGamesPlugin
 version: 1.0
 api-version: 1.20
-depend: [WorldEdit, PartySystem]
+depend: [WorldEdit]
+softdepend: [PartySystem]
 commands:
   minigame:
     description: Main command for minigames

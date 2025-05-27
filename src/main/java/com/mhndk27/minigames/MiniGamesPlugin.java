@@ -1,8 +1,10 @@
 package com.mhndk27.minigames;
 
 import com.mhndk27.minigames.arenas.WaitingRoomManager;
+import com.mhndk27.minigames.commands.ZombieShooterCommand;
+import com.mhndk27.minigames.commands.ReturnToLobbyCommand;
 import com.mhndk27.minigames.integration.PartyIntegration;
-import com.mhndk27.minigames.listeners.NPCInteractionListener;
+
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -18,11 +20,10 @@ public class MiniGamesPlugin extends JavaPlugin {
         instance = this;
 
         saveDefaultConfig();
-
         waitingRoomManager = new WaitingRoomManager(this);
 
-        // استدعاء البلوقن Party-System من السيرفر (الاسم حسب plugin.yml)
-        Plugin partyPlugin = Bukkit.getPluginManager().getPlugin("Party-System"); // تأكد الاسم مطابق بالضبط!
+        // ربط بلوقن Party-System
+        Plugin partyPlugin = Bukkit.getPluginManager().getPlugin("PartySystem");
 
         if (partyPlugin == null || !partyPlugin.isEnabled()) {
             getLogger().warning("Party-System plugin not found or disabled! Party features disabled.");
@@ -30,7 +31,6 @@ public class MiniGamesPlugin extends JavaPlugin {
         } else {
             Object partyManagerInstance = null;
             try {
-                // نستخدم الريفليكشن لاستدعاء getPartyManager من البلوقن
                 partyManagerInstance = partyPlugin.getClass().getMethod("getPartyManager").invoke(partyPlugin);
             } catch (Exception e) {
                 getLogger().warning("Failed to get PartyManager from Party-System plugin.");
@@ -39,8 +39,9 @@ public class MiniGamesPlugin extends JavaPlugin {
             partyIntegration = new PartyIntegration(this, partyManagerInstance);
         }
 
-        // تسجيل مستمع الحدث الخاص بـ NPC
-        getServer().getPluginManager().registerEvents(new NPCInteractionListener(partyIntegration), this);
+        // تسجيل الأوامر اللي تنفذ من الكونسول بواسطة NPC
+        getCommand("zombieshooter").setExecutor(new ZombieShooterCommand(partyIntegration));
+        getCommand("returntolobby").setExecutor(new ReturnToLobbyCommand(partyIntegration));
 
         getLogger().info("MiniGamesManager enabled!");
     }
