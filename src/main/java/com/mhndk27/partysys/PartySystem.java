@@ -17,7 +17,7 @@ public class PartySystem extends JavaPlugin {
 
         // تسجيل الأمر مع التنفيذ والتنقيح (TabCompleter)
         getCommand("party").setExecutor(new PartyCommand(partyManager));
-        getCommand("party").setTabCompleter(new PartyTabCompleter(partyManager)); // تعديل احترافي
+        getCommand("party").setTabCompleter(new PartyTabCompleter(partyManager));
 
         // تسجيل المستمعين للأحداث
         getServer().getPluginManager().registerEvents(new PartyChatListener(partyManager), this);
@@ -27,6 +27,11 @@ public class PartySystem extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        // ممكن تضيف تنظيف لو احتاج الأمر هنا
+        // Cleanup إن احتجت
+    }
+
+    // ✅ Getter عشان نسمح لبلوقن ثاني يوصل للـ PartyManager
+    public PartyManager getPartyManager() {
+        return partyManager;
     }
 }
