@@ -3,6 +3,7 @@ package com.mhndk27.minigames;
 import com.mhndk27.minigames.arenas.WaitingRoomManager;
 import com.mhndk27.minigames.integration.PartyIntegration;
 import com.mhndk27.minigames.listeners.NPCInteractionListener;
+import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -20,24 +21,25 @@ public class MiniGamesPlugin extends JavaPlugin {
 
         waitingRoomManager = new WaitingRoomManager(this);
 
-        // جلب البلوقن الخاص بالبارتي من السيرفر
-        Plugin partyPlugin = getServer().getPluginManager().getPlugin("PartySystem");
+        // استدعاء البلوقن Party-System من السيرفر (الاسم حسب plugin.yml)
+        Plugin partyPlugin = Bukkit.getPluginManager().getPlugin("Party-System"); // تأكد الاسم مطابق بالضبط!
 
-        if (partyPlugin == null) {
-            getLogger().warning("PartySystem plugin not found! Party features disabled.");
+        if (partyPlugin == null || !partyPlugin.isEnabled()) {
+            getLogger().warning("Party-System plugin not found or disabled! Party features disabled.");
             partyIntegration = new PartyIntegration(this, null);
         } else {
-            // تأكد أن PartyManager يمكن الوصول إليه من البلوقن
-            // فرضًا PartyManager هنا كائن يتم جلبه من البلوقن
-            Object partyManager = null;
+            Object partyManagerInstance = null;
             try {
-                partyManager = partyPlugin.getClass().getMethod("getPartyManager").invoke(partyPlugin);
+                // نستخدم الريفليكشن لاستدعاء getPartyManager من البلوقن
+                partyManagerInstance = partyPlugin.getClass().getMethod("getPartyManager").invoke(partyPlugin);
             } catch (Exception e) {
-                getLogger().warning("Failed to get PartyManager from PartySystem plugin.");
+                getLogger().warning("Failed to get PartyManager from Party-System plugin.");
+                e.printStackTrace();
             }
-            partyIntegration = new PartyIntegration(this, partyManager);
+            partyIntegration = new PartyIntegration(this, partyManagerInstance);
         }
 
+        // تسجيل مستمع الحدث الخاص بـ NPC
         getServer().getPluginManager().registerEvents(new NPCInteractionListener(partyIntegration), this);
 
         getLogger().info("MiniGamesManager enabled!");

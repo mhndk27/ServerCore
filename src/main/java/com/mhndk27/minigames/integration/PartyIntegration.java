@@ -13,7 +13,7 @@ import java.util.UUID;
 public class PartyIntegration {
 
     private final MiniGamesPlugin plugin;
-    private final Object partyManager; // Object لأننا لا نعرف نوعه الحقيقي
+    private final Object partyManager; // Object عام لأننا نستخدم reflection
 
     public PartyIntegration(MiniGamesPlugin plugin, Object partyManager) {
         this.plugin = plugin;
@@ -35,6 +35,7 @@ public class PartyIntegration {
             return leaderUUID.equals(player.getUniqueId());
 
         } catch (Exception e) {
+            plugin.getLogger().warning("Error checking party leader:");
             e.printStackTrace();
             return false;
         }
@@ -52,6 +53,7 @@ public class PartyIntegration {
             Object membersObj = getMembersMethod.invoke(party);
 
             if (!(membersObj instanceof List<?>)) return null;
+
             @SuppressWarnings("unchecked")
             List<UUID> membersUUIDs = (List<UUID>) membersObj;
 
@@ -63,6 +65,7 @@ public class PartyIntegration {
             return players;
 
         } catch (Exception e) {
+            plugin.getLogger().warning("Error getting party members:");
             e.printStackTrace();
             return null;
         }
