@@ -4,22 +4,18 @@
                              http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
-
     <groupId>com.mhndk27</groupId>
-    <artifactId>MiniGamesManager</artifactId>
+    <artifactId>tpm</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
-
-    <name>MiniGamesManager</name>
 
     <properties>
         <java.version>17</java.version>
         <spigot.version>1.20.4-R0.1-SNAPSHOT</spigot.version>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding> <!-- أضفت هذا السطر فقط -->
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
     <dependencies>
-
         <!-- Spigot API -->
         <dependency>
             <groupId>org.spigotmc</groupId>
@@ -28,15 +24,14 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- WorldEdit -->
+        <!-- WorldEdit Bukkit -->
         <dependency>
             <groupId>com.sk89q.worldedit</groupId>
-            <artifactId>worldedit-bukkit</artifactId>
-            <version>7.3.0</version>
-            <scope>provided</scope>
+            <artifactId>worldedit-core</artifactId>
+            <version>7.3.9</version>
         </dependency>
 
-        <!-- Party System -->
+        <!-- PartySystem (خاص فيك) -->
         <dependency>
             <groupId>com.mhndk27</groupId>
             <artifactId>PartySystem</artifactId>
@@ -60,7 +55,7 @@
                 <configuration>
                     <source>17</source>
                     <target>17</target>
-                    <encoding>${project.build.sourceEncoding}</encoding> <!-- أضفت هذا السطر فقط -->
+                    <encoding>${project.build.sourceEncoding}</encoding>
                 </configuration>
             </plugin>
         </plugins>

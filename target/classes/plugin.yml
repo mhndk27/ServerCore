@@ -1,11 +1,22 @@
-name: minigames
+name: TPM
 version: 1.0
-main: com.mhndk27.minigames.MiniGamesPlugin
-api-version: 1.20
+main: com.mhndk27.tpm.TPMPlugin
+api-version: "1.20"
 commands:
-  minigame:
-    description: Main minigame command
-    usage: /<command>
-  startgame:
-    description: Start a minigame session
-    usage: /startgame
+  zstp:
+    description: Teleport player / create room command
+    usage: /zstp <player>
+    permission: tpm.command.zstp
+    permission-message: You don't have permission to use this command.
+  lobbytp:
+    description: Return player to lobby and delete room
+    usage: /lobbytp <player>
+    permission: tpm.command.lobbytp
+    permission-message: You don't have permission to use this command.
+permissions:
+  tpm.command.zstp:
+    description: Allows use of /zstp command
+    default: op
+  tpm.command.lobbytp:
+    description: Allows use of /lobbytp command
+    default: op
