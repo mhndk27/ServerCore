@@ -14,6 +14,16 @@ import net.kyori.adventure.text.Component;
 
 public class PartyManager {
 
+    private static PartyManager instance;
+
+    public PartyManager() {
+        instance = this;
+    }
+
+    public static PartyManager getInstance() {
+        return instance;
+    }
+
     private final Map<UUID, Party> playerPartyMap = new HashMap<>();
     private final Set<Party> parties = new HashSet<>();
 
