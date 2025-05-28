@@ -1,22 +1,23 @@
 name: TPM
-version: 1.0
 main: com.mhndk27.tpm.TPMPlugin
-api-version: "1.20"
+version: 1.0.0
+api-version: 1.20
 commands:
   zstp:
-    description: Teleport player / create room command
+    description: Execute teleport to waiting room command (Console only)
     usage: /zstp <player>
     permission: tpm.command.zstp
-    permission-message: You don't have permission to use this command.
+    permission-message: You don't have permission to execute this command.
+    aliases: []
   lobbytp:
-    description: Return player to lobby and delete room
+    description: Execute teleport to lobby command (Console only)
     usage: /lobbytp <player>
     permission: tpm.command.lobbytp
-    permission-message: You don't have permission to use this command.
+    permission-message: You don't have permission to execute this command.
 permissions:
   tpm.command.zstp:
-    description: Allows use of /zstp command
+    description: Allows using the /zstp command from console only
     default: op
   tpm.command.lobbytp:
-    description: Allows use of /lobbytp command
+    description: Allows using the /lobbytp command from console only
     default: op

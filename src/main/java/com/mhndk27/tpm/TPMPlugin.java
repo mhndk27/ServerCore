@@ -1,48 +1,30 @@
 package com.mhndk27.tpm;
 
-import com.mhndk27.tpm.commands.ReturnCommand;
-import com.mhndk27.tpm.commands.TPCommand;
-import com.mhndk27.tpm.core.NPCManager;
-import com.mhndk27.tpm.core.PartyChecker;
-import com.mhndk27.tpm.core.RoomManager;
-
+import com.mhndk27.tpm.commands.LobbyTPCommand;
+import com.mhndk27.tpm.commands.ZSTPCommand;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class TPMPlugin extends JavaPlugin {
 
     private static TPMPlugin instance;
 
-    private RoomManager roomManager;
-    private NPCManager npcManager;
-    private PartyChecker partyChecker;
-
     @Override
     public void onEnable() {
         instance = this;
 
-        saveDefaultConfig();
+        // تسجيل أوامر الكونسل
+        getCommand("zstp").setExecutor(new ZSTPCommand());
+        getCommand("lobbytp").setExecutor(new LobbyTPCommand());
 
-        roomManager = new RoomManager(this);
-        npcManager = new NPCManager(this);
-        partyChecker = new PartyChecker(this);
+        getLogger().info("TPMPlugin enabled!");
+    }
 
-        getCommand("zstp").setExecutor(new TPCommand(this));
-        getCommand("lobbytp").setExecutor(new ReturnCommand(this));
+    @Override
+    public void onDisable() {
+        getLogger().info("TPMPlugin disabled!");
     }
 
     public static TPMPlugin getInstance() {
         return instance;
-    }
-
-    public RoomManager getRoomManager() {
-        return roomManager;
-    }
-
-    public NPCManager getNpcManager() {
-        return npcManager;
-    }
-
-    public PartyChecker getPartyChecker() {
-        return partyChecker;
     }
 }
