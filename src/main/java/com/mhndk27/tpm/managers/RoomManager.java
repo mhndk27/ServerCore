@@ -20,6 +20,11 @@ public class RoomManager {
     private final Location lobbyLocation = new Location(Bukkit.getWorld("world"), 0, 7, 0);
     private final File schematicFile = new File("C:/Users/mohan/Downloads/THENETHER/server/plugins/TPM/schematics/zswaitroom.schem");
 
+    // الإزاحات المطلوبة للنقل داخل الغرفة
+    private static final int OFFSET_X = 19;
+    private static final int OFFSET_Y = -15;
+    private static final int OFFSET_Z = -18;
+
     public RoomManager(NPCFileManager npcFileManager) {
         this.npcFileManager = npcFileManager;
     }
@@ -49,7 +54,14 @@ public class RoomManager {
         roomPlayersMap.put(roomOrigin, new HashSet<>());
         for (Player p : players) {
             roomPlayersMap.get(roomOrigin).add(p.getUniqueId());
-            TeleportUtils.teleport(p, roomOrigin);
+            // النقل يكون مع الإزاحة
+            Location teleportLocation = new Location(
+                roomOrigin.getWorld(),
+                roomOrigin.getX() + OFFSET_X,
+                roomOrigin.getY() + OFFSET_Y,
+                roomOrigin.getZ() + OFFSET_Z
+            );
+            TeleportUtils.teleport(p, teleportLocation);
         }
     }
 
