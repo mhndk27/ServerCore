@@ -1,84 +1,91 @@
 package com.mhndk27.tpm.managers;
 
-import com.mhndk27.partysys.Party;
 import com.mhndk27.tpm.utils.SchematicUtils;
 import com.mhndk27.tpm.utils.TeleportUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
+import java.io.File;
 import java.util.*;
 
 public class RoomManager {
+    private final Map<UUID, Location> playerRoomMap = new HashMap<>();
+    private final Map<Location, Set<UUID>> roomPlayersMap = new HashMap<>();
+    private final NPCFileManager npcFileManager;
 
-    private static final RoomManager instance = new RoomManager();
-    public static RoomManager getInstance() {
-        return instance;
+    private int nextRoomOffset = 0;
+    private final int ROOM_SPACING = 100;
+
+    private final Location lobbyLocation = new Location(Bukkit.getWorld("world"), 0, 7, 0);
+    private final File schematicFile = new File("C:/Users/mohan/Downloads/THENETHER/server/plugins/TPM/schematics/zswaitroom.schem");
+
+    public RoomManager(NPCFileManager npcFileManager) {
+        this.npcFileManager = npcFileManager;
     }
 
-    // ربط UUID اللاعب بالرقم الغرفة
-    private final Map<UUID, Integer> playerRoomMap = new HashMap<>();
-
-    // تتبع رقم ملف NPC (يبدأ من 2)
-    private int currentNpcId = 2;
-
-    // ربط رقم الغرفة مع اللاعبين المرتبطين (UUIDs)
-    private final Map<Integer, Set<UUID>> roomPlayerMap = new HashMap<>();
-
-    public void createRoomForSolo(Player player) {
-        int roomId = currentNpcId++;
-
-        Location pasteLocation = SchematicUtils.pasteSchematic("zswaitroom.schem", roomId);
-
-        TeleportUtils.teleport(player, pasteLocation);
-
-        playerRoomMap.put(player.getUniqueId(), roomId);
-        roomPlayerMap.put(roomId, new HashSet<>(Collections.singletonList(player.getUniqueId())));
-
-        NPCFileManager.createReturnNPCFile(player.getName(), roomId, pasteLocation);
+    public boolean hasRoom(Player player) {
+        return playerRoomMap.containsKey(player.getUniqueId());
     }
 
-    public void createRoomForParty(Party party) {
-        int roomId = currentNpcId++;
+    public Location getRoom(Player player) {
+        return playerRoomMap.get(player.getUniqueId());
+    }
 
-        Location pasteLocation = SchematicUtils.pasteSchematic("zswaitroom.schem", roomId);
+    public void createRoomAndTeleport(Player initiator, List<Player> players) {
+        int x = 100;
+        int y = 100;
+        int z = 500 + (nextRoomOffset * ROOM_SPACING);
+        nextRoomOffset++;
 
-        Set<UUID> members = party.getMembers();
-        roomPlayerMap.put(roomId, new HashSet<>(members));
+        Location roomOrigin = new Location(Bukkit.getWorld("world"), x, y, z);
+        SchematicUtils.pasteSchematic(schematicFile, roomOrigin);
+        npcFileManager.createNPCFile(roomOrigin); // NPC داخل الغرفة
 
-        for (UUID uuid : members) {
-            Player p = Bukkit.getPlayer(uuid);
-            if (p != null && p.isOnline()) {
-                playerRoomMap.put(uuid, roomId);
-                TeleportUtils.teleport(p, pasteLocation);
-            }
+        for (Player p : players) {
+            playerRoomMap.put(p.getUniqueId(), roomOrigin);
         }
 
-        Player leader = Bukkit.getPlayer(party.getLeaderUUID());
-        if (leader != null) {
-            NPCFileManager.createReturnNPCFile(leader.getName(), roomId, pasteLocation);
+        roomPlayersMap.put(roomOrigin, new HashSet<>());
+        for (Player p : players) {
+            roomPlayersMap.get(roomOrigin).add(p.getUniqueId());
+            TeleportUtils.teleport(p, roomOrigin);
         }
     }
 
-    public void removePlayer(UUID uuid) {
-        Integer roomId = playerRoomMap.remove(uuid);
-        if (roomId == null) return;
+    public void removePlayer(Player player) {
+        UUID uuid = player.getUniqueId();
+        Location room = playerRoomMap.get(uuid);
 
-        Set<UUID> set = roomPlayerMap.get(roomId);
-        if (set != null) {
-            set.remove(uuid);
-            if (set.isEmpty()) {
-                roomPlayerMap.remove(roomId);
-                NPCFileManager.deleteNPCFile(roomId);
+        if (room != null) {
+            playerRoomMap.remove(uuid);
+            Set<UUID> members = roomPlayersMap.get(room);
+            if (members != null) {
+                members.remove(uuid);
+                if (members.isEmpty()) {
+                    roomPlayersMap.remove(room);
+                    npcFileManager.deleteNPCFile(room);
+                }
             }
         }
     }
 
-    public boolean isPlayerInRoom(UUID uuid) {
-        return playerRoomMap.containsKey(uuid);
+    public void disbandParty(List<Player> members) {
+        if (members.isEmpty()) return;
+
+        Location room = playerRoomMap.get(members.get(0).getUniqueId());
+        for (Player p : members) {
+            playerRoomMap.remove(p.getUniqueId());
+            TeleportUtils.teleport(p, lobbyLocation);
+        }
+
+        if (room != null) {
+            roomPlayersMap.remove(room);
+            npcFileManager.deleteNPCFile(room);
+        }
     }
 
-    public Integer getPlayerRoomId(UUID uuid) {
-        return playerRoomMap.get(uuid);
+    public void teleportToLobby(Player player) {
+        TeleportUtils.teleport(player, lobbyLocation);
     }
 }

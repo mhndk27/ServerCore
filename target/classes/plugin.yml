@@ -1,23 +1,23 @@
 name: TPM
+version: 1.0
 main: com.mhndk27.tpm.TPMPlugin
-version: 1.0.0
 api-version: 1.20
+author: mhndk27
+
 commands:
   zstp:
-    description: Execute teleport to waiting room command (Console only)
+    description: Create and teleport to zombie shooter waiting room.
     usage: /zstp <player>
-    permission: tpm.command.zstp
-    permission-message: You don't have permission to execute this command.
-    aliases: []
+    permission: tpm.zstp
+    permission-message: You don't have permission to use this command.
   lobbytp:
-    description: Execute teleport to lobby command (Console only)
+    description: Return a player (or party) to lobby and cleanup.
     usage: /lobbytp <player>
-    permission: tpm.command.lobbytp
-    permission-message: You don't have permission to execute this command.
+    permission: tpm.lobbytp
+    permission-message: You don't have permission to use this command.
+
 permissions:
-  tpm.command.zstp:
-    description: Allows using the /zstp command from console only
+  tpm.zstp:
     default: op
-  tpm.command.lobbytp:
-    description: Allows using the /lobbytp command from console only
+  tpm.lobbytp:
     default: op

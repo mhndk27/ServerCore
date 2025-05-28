@@ -9,48 +9,42 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
+
 public class ZSTPCommand implements CommandExecutor {
+
+    private final RoomManager roomManager;
+
+    public ZSTPCommand(RoomManager roomManager) {
+        this.roomManager = roomManager;
+    }
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-
-        // فقط من الكونسل
-        if (!(sender instanceof org.bukkit.command.ConsoleCommandSender)) {
-            sender.sendMessage("This command can only be run from the console.");
-            return true;
-        }
-
-        if (args.length != 1) {
-            sender.sendMessage("Usage: /zstp <player>");
-            return true;
-        }
+        if (args.length != 1) return false;
 
         Player target = Bukkit.getPlayer(args[0]);
-        if (target == null || !target.isOnline()) {
-            sender.sendMessage("Player not found or offline.");
-            return true;
-        }
+        if (target == null) return false;
 
-        PartyManager partyManager = PartyManager.getInstance();
-        Party party = partyManager.getParty(target.getUniqueId());
-
-        RoomManager roomManager = RoomManager.getInstance();
+        Party party = PartyManager.getInstance().getParty(target.getUniqueId()); // تصحيح هنا
 
         if (party == null) {
-            // لاعب منفرد، أنشئ غرفة لوحده
-            roomManager.createRoomForSolo(target);
-            sender.sendMessage("Created solo room for " + target.getName());
-        } else {
-            // لاعب في بارتي
-            if (party.getLeaderUUID().equals(target.getUniqueId())) {
-                // القائد: انشئ غرفة للبارتي كاملة
-                roomManager.createRoomForParty(party);
-                sender.sendMessage("Created party room for leader " + target.getName());
-            } else {
-                // عضو فقط: رسالة انتظر القائد
-                target.sendMessage("Please wait for your party leader to choose the mini game.");
-                sender.sendMessage("Player " + target.getName() + " is not the leader.");
+            roomManager.createRoomAndTeleport(target, Collections.singletonList(target));
+        } else if (party.getLeaderUUID().equals(target.getUniqueId())) {
+            // تحويل Set<UUID> إلى List<Player>
+            List<Player> members = new ArrayList<>();
+            for (UUID memberUUID : party.getMembers()) {
+                Player member = Bukkit.getPlayer(memberUUID);
+                if (member != null && member.isOnline()) {
+                    members.add(member);
+                }
             }
+            roomManager.createRoomAndTeleport(target, members);
+        } else {
+            target.sendMessage("§cانتظر القائد يختار الميني قيم.");
         }
 
         return true;
