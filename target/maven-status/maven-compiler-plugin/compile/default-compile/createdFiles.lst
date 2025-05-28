@@ -1,7 +1,0 @@
-com\mhndk27\tpm\utils\SchematicUtils.class
-com\mhndk27\tpm\utils\TeleportUtils.class
-com\mhndk27\tpm\managers\NPCFileManager.class
-com\mhndk27\tpm\commands\LobbyTPCommand.class
-com\mhndk27\tpm\managers\RoomManager.class
-com\mhndk27\tpm\commands\ZSTPCommand.class
-com\mhndk27\tpm\TPMPlugin.class
