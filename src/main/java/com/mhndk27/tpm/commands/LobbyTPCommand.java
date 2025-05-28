@@ -6,7 +6,6 @@ import com.mhndk27.tpm.managers.RoomManager;
 import com.mhndk27.tpm.utils.TeleportUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
