@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.util.*;
 
 public class RoomManager {
+
     private final Map<UUID, Location> playerRoomMap = new HashMap<>();
     private final Map<Location, Set<UUID>> roomPlayersMap = new HashMap<>();
     private final NPCFileManager npcFileManager;
@@ -43,22 +44,23 @@ public class RoomManager {
         if (playerRoomMap.containsKey(uuid)) return true;
 
         File dataFile = new File(roomDataFolder, uuid + ".yml");
-        if (dataFile.exists()) {
-            YamlConfiguration config = YamlConfiguration.loadConfiguration(dataFile);
-            String worldName = config.getString("world");
-            double x = config.getDouble("x");
-            double y = config.getDouble("y");
-            double z = config.getDouble("z");
+        if (!dataFile.exists()) return false;
 
-            Location loc = new Location(Bukkit.getWorld(worldName), x, y, z);
-            playerRoomMap.put(uuid, loc);
+        YamlConfiguration config = YamlConfiguration.loadConfiguration(dataFile);
+        String worldName = config.getString("world");
+        double x = config.getDouble("x");
+        double y = config.getDouble("y");
+        double z = config.getDouble("z");
 
-            roomPlayersMap.putIfAbsent(loc, new HashSet<>());
-            roomPlayersMap.get(loc).add(uuid);
-            return true;
-        }
+        World world = Bukkit.getWorld(worldName);
+        if (world == null) return false;
 
-        return false;
+        Location loc = new Location(world, x, y, z);
+        playerRoomMap.put(uuid, loc);
+
+        roomPlayersMap.putIfAbsent(loc, new HashSet<>());
+        roomPlayersMap.get(loc).add(uuid);
+        return true;
     }
 
     public Location getRoom(Player player) {
@@ -84,13 +86,8 @@ public class RoomManager {
             roomPlayersMap.get(roomOrigin).add(uuid);
             saveRoomLocation(uuid, roomOrigin);
 
-            Location teleportLocation = new Location(
-                    roomOrigin.getWorld(),
-                    roomOrigin.getX() + OFFSET_X,
-                    roomOrigin.getY() + OFFSET_Y,
-                    roomOrigin.getZ() + OFFSET_Z
-            );
-            TeleportUtils.teleport(p, teleportLocation);
+            Location tpLoc = roomOrigin.clone().add(OFFSET_X, OFFSET_Y, OFFSET_Z);
+            TeleportUtils.teleport(p, tpLoc);
         }
     }
 
@@ -98,17 +95,17 @@ public class RoomManager {
         UUID uuid = player.getUniqueId();
         Location room = playerRoomMap.remove(uuid);
 
-        if (room != null) {
-            Set<UUID> members = roomPlayersMap.get(room);
-            if (members != null) {
-                members.remove(uuid);
-                if (members.isEmpty()) {
-                    clearRoom(room); // ✅ استبدال الغرفة بالهواء وحذف ملفاتها
-                }
-            }
-        }
+        if (room == null) return;
 
+        Set<UUID> members = roomPlayersMap.get(room);
+        if (members == null) return;
+
+        members.remove(uuid);
         deleteRoomFile(uuid);
+
+        if (members.isEmpty()) {
+            clearRoom(room);
+        }
     }
 
     public void teleportToLobby(Player player) {
@@ -124,13 +121,12 @@ public class RoomManager {
         roomPlayersMap.get(leaderRoom).add(uuid);
         saveRoomLocation(uuid, leaderRoom);
 
-        Location teleportLocation = new Location(
-                leaderRoom.getWorld(),
-                leaderRoom.getX() + OFFSET_X,
-                leaderRoom.getY() + OFFSET_Y,
-                leaderRoom.getZ() + OFFSET_Z
-        );
-        TeleportUtils.teleport(player, teleportLocation);
+        Location tpLoc = leaderRoom.clone().add(OFFSET_X, OFFSET_Y, OFFSET_Z);
+        TeleportUtils.teleport(player, tpLoc);
+    }
+
+    public Set<UUID> getRoomPlayers(Location room) {
+        return roomPlayersMap.getOrDefault(room, Collections.emptySet());
     }
 
     private void saveRoomLocation(UUID uuid, Location loc) {
@@ -155,23 +151,25 @@ public class RoomManager {
 
     private void deleteAllPlayerFilesInRoom(Location room) {
         File[] files = roomDataFolder.listFiles();
-        if (files != null) {
-            for (File f : files) {
-                YamlConfiguration config = YamlConfiguration.loadConfiguration(f);
-                String worldName = config.getString("world");
-                double x = config.getDouble("x");
-                double y = config.getDouble("y");
-                double z = config.getDouble("z");
+        if (files == null) return;
 
-                if (worldName.equals(room.getWorld().getName()) &&
-                    x == room.getX() && y == room.getY() && z == room.getZ()) {
-                    f.delete();
-                }
+        for (File f : files) {
+            YamlConfiguration config = YamlConfiguration.loadConfiguration(f);
+            String worldName = config.getString("world");
+            double x = config.getDouble("x");
+            double y = config.getDouble("y");
+            double z = config.getDouble("z");
+
+            if (room.getWorld().getName().equals(worldName)
+                && x == room.getX() && y == room.getY() && z == room.getZ()) {
+                f.delete();
             }
         }
     }
 
     private void clearRoom(Location origin) {
+        if (origin == null) return;
+
         World world = origin.getWorld();
         int startX = origin.getBlockX();
         int startY = origin.getBlockY();
