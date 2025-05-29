@@ -102,9 +102,28 @@ public class RoomManager {
             Set<UUID> members = roomPlayersMap.get(room);
             if (members != null) {
                 members.remove(uuid);
+
+                // ✅ حذف الغرفة فقط إذا صارت بدون أي لاعبين
                 if (members.isEmpty()) {
                     roomPlayersMap.remove(room);
                     npcFileManager.deleteNPCFile(room);
+
+                    // ⛔️ نحذف كل ملفات اللاعبين اللي كانوا فيها
+                    File[] files = roomDataFolder.listFiles();
+                    if (files != null) {
+                        for (File f : files) {
+                            YamlConfiguration config = YamlConfiguration.loadConfiguration(f);
+                            String worldName = config.getString("world");
+                            double x = config.getDouble("x");
+                            double y = config.getDouble("y");
+                            double z = config.getDouble("z");
+
+                            if (worldName.equals(room.getWorld().getName()) &&
+                                x == room.getX() && y == room.getY() && z == room.getZ()) {
+                                f.delete(); // حذف ملف اللاعب المرتبط بالغرفة
+                            }
+                        }
+                    }
                 }
             }
         }
