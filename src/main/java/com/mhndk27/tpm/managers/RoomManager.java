@@ -4,9 +4,11 @@ import com.mhndk27.tpm.utils.SchematicUtils;
 import com.mhndk27.tpm.utils.TeleportUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 public class RoomManager {
@@ -19,6 +21,7 @@ public class RoomManager {
 
     private final Location lobbyLocation = new Location(Bukkit.getWorld("world"), 0, 7, 0);
     private final File schematicFile = new File("C:/Users/mohan/Downloads/THENETHER/server/plugins/TPM/schematics/zswaitroom.schem");
+    private final File roomDataFolder = new File("plugins/TPM/rooms");
 
     // الإزاحات المطلوبة للنقل داخل الغرفة
     private static final int OFFSET_X = 19;
@@ -27,13 +30,40 @@ public class RoomManager {
 
     public RoomManager(NPCFileManager npcFileManager) {
         this.npcFileManager = npcFileManager;
+
+        if (!roomDataFolder.exists()) {
+            roomDataFolder.mkdirs();
+        }
     }
 
     public boolean hasRoom(Player player) {
-        return playerRoomMap.containsKey(player.getUniqueId());
+        UUID uuid = player.getUniqueId();
+        if (playerRoomMap.containsKey(uuid)) {
+            return true;
+        }
+
+        // محاولة تحميل الموقع من الملف
+        File dataFile = new File(roomDataFolder, uuid + ".yml");
+        if (dataFile.exists()) {
+            YamlConfiguration config = YamlConfiguration.loadConfiguration(dataFile);
+            String worldName = config.getString("world");
+            double x = config.getDouble("x");
+            double y = config.getDouble("y");
+            double z = config.getDouble("z");
+
+            Location loc = new Location(Bukkit.getWorld(worldName), x, y, z);
+            playerRoomMap.put(uuid, loc);
+
+            roomPlayersMap.putIfAbsent(loc, new HashSet<>());
+            roomPlayersMap.get(loc).add(uuid);
+            return true;
+        }
+
+        return false;
     }
 
     public Location getRoom(Player player) {
+        hasRoom(player); // يحمل من الملف إذا ما كان محمّل
         return playerRoomMap.get(player.getUniqueId());
     }
 
@@ -45,16 +75,16 @@ public class RoomManager {
 
         Location roomOrigin = new Location(Bukkit.getWorld("world"), x, y, z);
         SchematicUtils.pasteSchematic(schematicFile, roomOrigin);
-        npcFileManager.createNPCFile(roomOrigin); // NPC داخل الغرفة
-
-        for (Player p : players) {
-            playerRoomMap.put(p.getUniqueId(), roomOrigin);
-        }
+        npcFileManager.createNPCFile(roomOrigin);
 
         roomPlayersMap.put(roomOrigin, new HashSet<>());
+
         for (Player p : players) {
-            roomPlayersMap.get(roomOrigin).add(p.getUniqueId());
-            // النقل يكون مع الإزاحة
+            UUID uuid = p.getUniqueId();
+            playerRoomMap.put(uuid, roomOrigin);
+            roomPlayersMap.get(roomOrigin).add(uuid);
+            saveRoomLocation(uuid, roomOrigin);
+
             Location teleportLocation = new Location(
                 roomOrigin.getWorld(),
                 roomOrigin.getX() + OFFSET_X,
@@ -67,10 +97,9 @@ public class RoomManager {
 
     public void removePlayer(Player player) {
         UUID uuid = player.getUniqueId();
-        Location room = playerRoomMap.get(uuid);
+        Location room = playerRoomMap.remove(uuid);
 
         if (room != null) {
-            playerRoomMap.remove(uuid);
             Set<UUID> members = roomPlayersMap.get(room);
             if (members != null) {
                 members.remove(uuid);
@@ -80,6 +109,8 @@ public class RoomManager {
                 }
             }
         }
+
+        deleteRoomFile(uuid);
     }
 
     public void disbandParty(List<Player> members) {
@@ -89,6 +120,7 @@ public class RoomManager {
         for (Player p : members) {
             playerRoomMap.remove(p.getUniqueId());
             TeleportUtils.teleport(p, lobbyLocation);
+            deleteRoomFile(p.getUniqueId());
         }
 
         if (room != null) {
@@ -99,5 +131,27 @@ public class RoomManager {
 
     public void teleportToLobby(Player player) {
         TeleportUtils.teleport(player, lobbyLocation);
+    }
+
+    private void saveRoomLocation(UUID uuid, Location loc) {
+        File file = new File(roomDataFolder, uuid + ".yml");
+        YamlConfiguration config = new YamlConfiguration();
+        config.set("world", loc.getWorld().getName());
+        config.set("x", loc.getX());
+        config.set("y", loc.getY());
+        config.set("z", loc.getZ());
+
+        try {
+            config.save(file);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void deleteRoomFile(UUID uuid) {
+        File file = new File(roomDataFolder, uuid + ".yml");
+        if (file.exists()) {
+            file.delete();
+        }
     }
 }
