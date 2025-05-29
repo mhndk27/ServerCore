@@ -23,7 +23,6 @@ public class RoomManager {
     private final File schematicFile = new File("C:/Users/mohan/Downloads/THENETHER/server/plugins/TPM/schematics/zswaitroom.schem");
     private final File roomDataFolder = new File("plugins/TPM/rooms");
 
-    // الإزاحات المطلوبة للنقل داخل الغرفة
     private static final int OFFSET_X = 19;
     private static final int OFFSET_Y = -15;
     private static final int OFFSET_Z = -18;
@@ -41,7 +40,6 @@ public class RoomManager {
             return true;
         }
 
-        // تحميل من الملف إذا موجود
         File dataFile = new File(roomDataFolder, uuid + ".yml");
         if (dataFile.exists()) {
             YamlConfiguration config = YamlConfiguration.loadConfiguration(dataFile);
@@ -62,7 +60,7 @@ public class RoomManager {
     }
 
     public Location getRoom(Player player) {
-        hasRoom(player); // يحمل من الملف إذا ما كان محمّل
+        hasRoom(player);
         return playerRoomMap.get(player.getUniqueId());
     }
 
@@ -103,27 +101,10 @@ public class RoomManager {
             if (members != null) {
                 members.remove(uuid);
 
-                // ✅ حذف الغرفة فقط إذا صارت بدون أي لاعبين
                 if (members.isEmpty()) {
                     roomPlayersMap.remove(room);
                     npcFileManager.deleteNPCFile(room);
-
-                    // ⛔️ نحذف كل ملفات اللاعبين اللي كانوا فيها
-                    File[] files = roomDataFolder.listFiles();
-                    if (files != null) {
-                        for (File f : files) {
-                            YamlConfiguration config = YamlConfiguration.loadConfiguration(f);
-                            String worldName = config.getString("world");
-                            double x = config.getDouble("x");
-                            double y = config.getDouble("y");
-                            double z = config.getDouble("z");
-
-                            if (worldName.equals(room.getWorld().getName()) &&
-                                x == room.getX() && y == room.getY() && z == room.getZ()) {
-                                f.delete(); // حذف ملف اللاعب المرتبط بالغرفة
-                            }
-                        }
-                    }
+                    deleteAllPlayerFilesInRoom(room); // ✅
                 }
             }
         }
@@ -144,6 +125,7 @@ public class RoomManager {
         if (room != null) {
             roomPlayersMap.remove(room);
             npcFileManager.deleteNPCFile(room);
+            deleteAllPlayerFilesInRoom(room); // ✅
         }
     }
 
@@ -188,6 +170,24 @@ public class RoomManager {
         File file = new File(roomDataFolder, uuid + ".yml");
         if (file.exists()) {
             file.delete();
+        }
+    }
+
+    private void deleteAllPlayerFilesInRoom(Location room) {
+        File[] files = roomDataFolder.listFiles();
+        if (files != null) {
+            for (File f : files) {
+                YamlConfiguration config = YamlConfiguration.loadConfiguration(f);
+                String worldName = config.getString("world");
+                double x = config.getDouble("x");
+                double y = config.getDouble("y");
+                double z = config.getDouble("z");
+
+                if (worldName.equals(room.getWorld().getName()) &&
+                    x == room.getX() && y == room.getY() && z == room.getZ()) {
+                    f.delete();
+                }
+            }
         }
     }
 }
