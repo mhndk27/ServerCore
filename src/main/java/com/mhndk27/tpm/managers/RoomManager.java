@@ -30,7 +30,6 @@ public class RoomManager {
 
     public RoomManager(NPCFileManager npcFileManager) {
         this.npcFileManager = npcFileManager;
-
         if (!roomDataFolder.exists()) {
             roomDataFolder.mkdirs();
         }
@@ -42,7 +41,7 @@ public class RoomManager {
             return true;
         }
 
-        // محاولة تحميل الموقع من الملف
+        // تحميل من الملف إذا موجود
         File dataFile = new File(roomDataFolder, uuid + ".yml");
         if (dataFile.exists()) {
             YamlConfiguration config = YamlConfiguration.loadConfiguration(dataFile);
@@ -131,6 +130,24 @@ public class RoomManager {
 
     public void teleportToLobby(Player player) {
         TeleportUtils.teleport(player, lobbyLocation);
+    }
+
+    public void syncNewMember(Player player, UUID leaderUUID) {
+        Location leaderRoom = playerRoomMap.get(leaderUUID);
+        if (leaderRoom == null) return;
+
+        UUID uuid = player.getUniqueId();
+        playerRoomMap.put(uuid, leaderRoom);
+        roomPlayersMap.get(leaderRoom).add(uuid);
+        saveRoomLocation(uuid, leaderRoom);
+
+        Location teleportLocation = new Location(
+            leaderRoom.getWorld(),
+            leaderRoom.getX() + OFFSET_X,
+            leaderRoom.getY() + OFFSET_Y,
+            leaderRoom.getZ() + OFFSET_Z
+        );
+        TeleportUtils.teleport(player, teleportLocation);
     }
 
     private void saveRoomLocation(UUID uuid, Location loc) {
