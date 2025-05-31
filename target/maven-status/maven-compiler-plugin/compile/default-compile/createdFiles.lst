@@ -2,3 +2,4 @@ com\mhndk27\servercore\Main.class
 com\mhndk27\servercore\RoomManager.class
 com\mhndk27\servercore\PartySystemAPI.class
 com\mhndk27\servercore\TptCommand.class
+com\mhndk27\servercore\RoomManager$PartySystemInterface.class
