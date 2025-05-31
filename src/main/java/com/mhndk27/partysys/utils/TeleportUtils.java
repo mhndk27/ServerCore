@@ -7,9 +7,9 @@ import org.bukkit.entity.Player;
 
 public class TeleportUtils {
 
-    private static final int LOBBY_X = 0;
+    private static final double LOBBY_X = 0.5;
     private static final int LOBBY_Y = 16;
-    private static final int LOBBY_Z = 0;
+    private static final double LOBBY_Z = 0.5;
 
     public static void teleportToLobby(Player player) {
         if (player == null)

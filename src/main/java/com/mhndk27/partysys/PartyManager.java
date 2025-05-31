@@ -38,7 +38,7 @@ public class PartyManager {
     // ===== Party Data =====
     private final Map<UUID, Party> playerPartyMap = new HashMap<>();
     private final Set<Party> parties = new HashSet<>();
-    private final Location lobbyLocation = new Location(Bukkit.getWorld("world"), 0, 16, 0);
+    private final Location lobbyLocation = new Location(Bukkit.getWorld("world"), 0.5, 16, 0.5);
 
     // ===== Party Lookup =====
 
