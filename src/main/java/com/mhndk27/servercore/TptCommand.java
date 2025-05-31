@@ -49,7 +49,7 @@ public class TptCommand implements CommandExecutor, TabCompleter {
                 player.sendMessage("§aYou have been teleported to Zombie Shooter (Room #" + roomId + ").");
             }
             case "lobby" -> {
-                Location lobbyLocation = new Location(player.getWorld(), 0, 16, 0);
+                Location lobbyLocation = new Location(player.getWorld(), 0.5, 16, 0.5);
                 if (partyAPI != null) {
                     roomManager.handleLobbyCommand(partyAPI, uuid, lobbyLocation);
                 } else {

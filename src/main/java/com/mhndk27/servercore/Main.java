@@ -41,7 +41,7 @@ public class Main extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new Listener() {
             @EventHandler
             public void onPlayerJoin(PlayerJoinEvent event) {
-                event.getPlayer().teleport(new Location(event.getPlayer().getWorld(), 0, 16, 0));
+                event.getPlayer().teleport(new Location(event.getPlayer().getWorld(), 0.5, 16, 0.5));
             }
         }, this);
     }
