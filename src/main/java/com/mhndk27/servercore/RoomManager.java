@@ -36,6 +36,21 @@ public class RoomManager {
         return null; // إذا لم توجد أي غرفة فاضية
     }
 
+    public Integer findSuitableRoom(PartySystemAPI partySystem, UUID playerUUID) {
+        for (int i = 1; i <= ROOM_COUNT; i++) {
+            List<UUID> roomMembers = rooms.get(i);
+            if (roomMembers.isEmpty()) {
+                return i; // الغرفة فاضية
+            }
+            // تحقق إذا اللاعب في نفس البارتي مع الموجودين في الغرفة
+            UUID leader = partySystem.getPartyLeader(playerUUID);
+            if (leader != null && roomMembers.contains(leader)) {
+                return i; // الغرفة تحتوي على أعضاء نفس البارتي
+            }
+        }
+        return null; // إذا لم توجد أي غرفة مناسبة
+    }
+
     public void addPlayersToRoom(int roomId, List<UUID> players) {
         rooms.get(roomId).addAll(players);
     }
@@ -113,14 +128,14 @@ public class RoomManager {
             return false; // لا يتم النقل إذا كان اللاعب بالفعل في غرفة
         }
 
-        // البحث عن أول غرفة فاضية
-        Integer roomId = findEmptyRoom();
+        // البحث عن أول غرفة مناسبة (فاضية أو تحتوي على أعضاء نفس البارتي)
+        Integer roomId = findSuitableRoom(partySystem, playerUUID);
         if (roomId == null) {
             Player player = getPlayer(playerUUID);
             if (player != null) {
                 player.sendMessage("§c§l[Error] §r§cNo available rooms at the moment.");
             }
-            return false; // لا يتم النقل إذا لم توجد أي غرفة فاضية
+            return false; // لا يتم النقل إذا لم توجد أي غرفة مناسبة
         }
 
         if (!inParty) {
@@ -185,9 +200,10 @@ public class RoomManager {
         if (!inParty) {
             teleportPlayerToLocation(playerUUID, lobbyLocation);
             Integer roomId = getPlayerRoom(playerUUID);
-            if (roomId != null)
+            if (roomId != null) {
                 clearRoom(roomId);
-            removePlayer(playerUUID);
+                removePlayer(playerUUID); // إزالة اللاعب من الغرفة بشكل صحيح
+            }
             Player player = getPlayer(playerUUID);
             if (player != null) {
                 player.sendMessage("§e§l[Notice] §r§eYou have been teleported to the lobby.");
@@ -214,8 +230,10 @@ public class RoomManager {
             }
         }
         Integer roomId = getPlayerRoom(playerUUID);
-        if (roomId != null)
+        if (roomId != null) {
             clearRoom(roomId);
+            removePlayer(playerUUID); // إزالة القائد وأعضاء البارتي من الغرفة بشكل صحيح
+        }
     }
 
     public void syncPartyMemberWithLeaderRoom(PartySystemAPI partySystem, UUID newMemberUUID) {
