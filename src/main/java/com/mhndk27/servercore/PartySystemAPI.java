@@ -3,6 +3,9 @@ package com.mhndk27.servercore;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * PartySystemAPI: واجهة يجب أن تطبقها أي إضافة بارتي تريد ربطها مع RoomManager.
+ */
 public interface PartySystemAPI {
     boolean isPlayerInParty(UUID playerUUID);
 

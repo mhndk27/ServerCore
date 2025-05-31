@@ -6,7 +6,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -38,56 +37,19 @@ public class TptCommand implements CommandExecutor, TabCompleter {
         UUID uuid = player.getUniqueId();
 
         if (target.equals("zombie_shooter")) {
-            if (partyAPI != null && partyAPI.isPlayerInParty(uuid)) {
-                UUID leader = partyAPI.getPartyLeader(uuid);
-                List<UUID> members = partyAPI.getPartyMembersOfPlayer(uuid);
-                Integer partyRoom = roomManager.getPartyRoom(members);
-
-                if (!leader.equals(uuid)) {
-                    // إذا البارتي أصلاً في غرفة، انقل اللاعب لنفس الغرفة
-                    if (partyRoom != null) {
-                        Location center = roomManager.getRoomCenter(partyRoom);
-                        player.teleport(center);
-                        roomManager.addPlayersToRoom(partyRoom, Collections.singletonList(uuid));
-                        player.sendMessage("§aYou have joined your party in Zombie Shooter (Room #" + partyRoom + ")");
-                    } else {
-                        player.sendMessage("§cWait for your party leader to teleport.");
-                    }
-                    return true;
-                }
-
-                // القائد: إذا البارتي أصلاً في غرفة، انقل الجميع لنفس الغرفة
-                if (partyRoom != null) {
-                    Location center = roomManager.getRoomCenter(partyRoom);
-                    for (UUID member : members) {
-                        Player p = Bukkit.getPlayer(member);
-                        if (p != null && p.isOnline()) {
-                            p.teleport(center);
-                            roomManager.addPlayersToRoom(partyRoom, Collections.singletonList(member));
-                            p.sendMessage(
-                                    "§aYour party has been teleported to Zombie Shooter (Room #" + partyRoom + ")");
-                        }
-                    }
-                    return true;
-                }
-
-                // إذا البارتي مو في غرفة، دور غرفة جديدة
+            if (partyAPI != null) {
                 Integer roomId = roomManager.findEmptyRoom();
                 if (roomId == null) {
                     player.sendMessage("§cNo available rooms at the moment.");
                     return true;
                 }
-                Location center = roomManager.getRoomCenter(roomId);
-                for (UUID member : members) {
-                    Player p = Bukkit.getPlayer(member);
-                    if (p != null && p.isOnline()) {
-                        p.teleport(center);
-                        roomManager.addPlayersToRoom(roomId, Collections.singletonList(member));
-                        p.sendMessage("§aYour party has been teleported to Zombie Shooter (Room #" + roomId + ")");
-                    }
+                boolean result = roomManager.handleRoomJoinRequest(partyAPI, uuid, roomId);
+                if (!result) {
+                    // الرسائل ترسل تلقائياً من RoomManager
+                    return true;
                 }
+                player.sendMessage("§aYou have been teleported to Zombie Shooter (Room #" + roomId + ").");
             } else {
-                // لاعب بدون بارتي: إذا هو أصلاً في غرفة لا تنقله لغرفة جديدة
                 Integer currentRoom = roomManager.getPlayerRoom(uuid);
                 if (currentRoom != null) {
                     Location center = roomManager.getRoomCenter(currentRoom);
@@ -109,25 +71,11 @@ public class TptCommand implements CommandExecutor, TabCompleter {
         }
 
         if (target.equals("lobby")) {
-            if (partyAPI != null && partyAPI.isPlayerInParty(uuid)) {
-                UUID leader = partyAPI.getPartyLeader(uuid);
-                if (!leader.equals(uuid)) {
-                    partyAPI.kickPlayerFromParty(uuid);
-                    player.sendMessage("§aYou have been kicked from the party and sent to the lobby.");
-                    // PartySystem handles teleporting to lobby
-                    return true;
-                }
-                List<UUID> members = partyAPI.getPartyMembersOfPlayer(uuid);
-                for (UUID member : members) {
-                    Player p = Bukkit.getPlayer(member);
-                    if (p != null && p.isOnline()) {
-                        p.teleport(new Location(p.getWorld(), 0, 16, 0));
-                        roomManager.removePlayer(member);
-                        p.sendMessage("§aYour party has been sent to the lobby.");
-                    }
-                }
+            Location lobbyLocation = new Location(player.getWorld(), 0, 16, 0);
+            if (partyAPI != null) {
+                roomManager.handleLobbyCommand(partyAPI, uuid, lobbyLocation);
             } else {
-                player.teleport(new Location(player.getWorld(), 0, 16, 0));
+                player.teleport(lobbyLocation);
                 roomManager.removePlayer(uuid);
                 player.sendMessage("§aYou have been sent to the lobby.");
             }
