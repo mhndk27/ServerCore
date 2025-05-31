@@ -30,8 +30,9 @@ public class RoomManager {
 
     public Integer findEmptyRoom() {
         for (int i = 1; i <= ROOM_COUNT; i++) {
-            if (rooms.get(i).isEmpty()) // تحقق إذا الغرفة فاضية
-                return i;
+            if (rooms.get(i).isEmpty()) {
+                return i; // الغرفة فاضية
+            }
         }
         return null; // إذا لم توجد أي غرفة فاضية
     }
@@ -42,10 +43,11 @@ public class RoomManager {
             if (roomMembers.isEmpty()) {
                 return i; // الغرفة فاضية
             }
-            // تحقق إذا اللاعب في نفس البارتي مع الموجودين في الغرفة
+            // تحقق إذا الغرفة تحتوي فقط على أعضاء نفس البارتي
             UUID leader = partySystem.getPartyLeader(playerUUID);
-            if (leader != null && roomMembers.contains(leader)) {
-                return i; // الغرفة تحتوي على أعضاء نفس البارتي
+            if (leader != null && roomMembers.stream().allMatch(member -> partySystem.isPlayerInParty(member)
+                    && partySystem.getPartyLeader(member).equals(leader))) {
+                return i; // الغرفة تحتوي على أعضاء نفس البارتي فقط
             }
         }
         return null; // إذا لم توجد أي غرفة مناسبة
@@ -116,7 +118,6 @@ public class RoomManager {
     public boolean handleRoomJoinRequest(
             PartySystemAPI partySystem,
             UUID playerUUID) {
-        boolean inParty = partySystem.isPlayerInParty(playerUUID);
         Integer currentRoom = getPlayerRoom(playerUUID);
 
         // تحقق إذا اللاعب موجود بالفعل في غرفة
@@ -128,48 +129,27 @@ public class RoomManager {
             return false; // لا يتم النقل إذا كان اللاعب بالفعل في غرفة
         }
 
-        // البحث عن أول غرفة مناسبة (فاضية أو تحتوي على أعضاء نفس البارتي)
-        Integer roomId = findSuitableRoom(partySystem, playerUUID);
+        // البحث عن أول غرفة فاضية
+        Integer roomId = findEmptyRoom();
         if (roomId == null) {
-            return false; // لا يتم النقل إذا لم توجد أي غرفة مناسبة
-        }
-
-        if (!inParty) {
-            teleportPartyToRoom(Collections.singletonList(playerUUID), roomId);
-            addPlayersToRoom(roomId, Collections.singletonList(playerUUID));
-            return true;
-        }
-
-        UUID leader = partySystem.getPartyLeader(playerUUID);
-        List<UUID> members = partySystem.getPartyMembersOfPlayer(playerUUID);
-        Integer partyRoom = getPartyRoom(members);
-
-        if (!playerUUID.equals(leader)) {
-            if (partyRoom != null) {
-                Location center = getRoomCenter(partyRoom);
-                if (center != null) {
-                    Location facingLocation = center.clone();
-                    facingLocation.setYaw(180);
-                    teleportPlayerToLocation(playerUUID, facingLocation);
-                    addPlayersToRoom(partyRoom, Collections.singletonList(playerUUID));
-                }
-            } else {
-                Player player = getPlayer(playerUUID);
-                if (player != null) {
-                    player.sendMessage(
-                            "§c§l[Error] §r§cWait for the party leader to choose a room or leave the party.");
-                }
+            Player player = getPlayer(playerUUID);
+            if (player != null) {
+                player.sendMessage("§c§l[Error] §r§cNo available rooms at the moment.");
             }
-            return false;
+            return false; // لا يتم النقل إذا لم توجد أي غرفة فاضية
         }
 
-        int targetRoom = (partyRoom != null) ? partyRoom : roomId;
-        Location center = getRoomCenter(targetRoom);
-        if (center != null) {
-            Location facingLocation = center.clone();
-            facingLocation.setYaw(180);
-            teleportPlayersToLocation(members, facingLocation);
-            addPlayersToRoom(targetRoom, members);
+        // نقل اللاعب أو البارتي إلى الغرفة الفاضية
+        if (!partySystem.isPlayerInParty(playerUUID)) {
+            teleportPartyToRoom(Collections.singletonList(playerUUID), roomId);
+            addPlayersToRoom(roomId, Collections.singletonList(playerUUID)); // إنشاء علاقة بين اللاعب والغرفة
+        } else {
+            UUID leader = partySystem.getPartyLeader(playerUUID);
+            if (leader.equals(playerUUID)) { // إذا كان القائد هو من كتب الأمر
+                List<UUID> members = partySystem.getPartyMembersOfPlayer(playerUUID);
+                teleportPartyToRoom(members, roomId);
+                addPlayersToRoom(roomId, members); // إنشاء علاقة بين البارتي والغرفة
+            }
         }
         return true;
     }
@@ -179,55 +159,32 @@ public class RoomManager {
             UUID playerUUID,
             Location lobbyLocation) {
         teleportPlayerToLocation(playerUUID, lobbyLocation);
-        Integer roomId = getPlayerRoom(playerUUID);
-        if (roomId != null) {
-            clearRoom(roomId);
-            removePlayer(playerUUID); // إزالة اللاعب من الغرفة بشكل صحيح
-        }
-    }
-
-    public void syncPartyMemberWithLeaderRoom(PartySystemAPI partySystem, UUID newMemberUUID) {
-        if (partySystem == null)
-            return;
-        UUID leader = partySystem.getPartyLeader(newMemberUUID);
-        if (leader == null)
-            return;
-        Integer leaderRoom = getPlayerRoom(leader);
-        if (leaderRoom == null)
-            return;
-        Player leaderPlayer = getPlayer(leader);
-        if (leaderPlayer == null)
-            return;
-        Integer memberRoom = getPlayerRoom(newMemberUUID);
-        if (leaderRoom.equals(memberRoom))
-            return;
-        Location center = getRoomCenter(leaderRoom);
-        if (center != null) {
-            Location facingLocation = center.clone();
-            facingLocation.setYaw(180);
-            teleportPlayerToLocation(newMemberUUID, facingLocation);
-            addPlayersToRoom(leaderRoom, Collections.singletonList(newMemberUUID));
-        }
+        cutRoomRelation(playerUUID); // قطع علاقة اللاعب بالغرفة
     }
 
     public void handlePartyDisband(UUID leaderUUID) {
-        Integer roomId = getPlayerRoom(leaderUUID);
-        if (roomId != null) {
-            clearRoom(roomId); // إزالة جميع أعضاء البارتي من الغرفة
-        }
+        cutRoomRelation(leaderUUID); // قطع علاقة القائد بالغرفة
     }
 
     public void handlePlayerLeaveParty(UUID playerUUID) {
-        Integer roomId = getPlayerRoom(playerUUID);
-        if (roomId != null) {
-            removePlayer(playerUUID); // إزالة اللاعب من الغرفة
-        }
+        cutRoomRelation(playerUUID); // قطع علاقة اللاعب بالغرفة
     }
 
     public void handlePlayerKick(UUID playerUUID) {
+        cutRoomRelation(playerUUID); // قطع علاقة اللاعب بالغرفة
+    }
+
+    public void handlePlayerDisconnect(UUID playerUUID) {
+        cutRoomRelation(playerUUID); // قطع علاقة اللاعب بالغرفة عند مغادرة السيرفر
+    }
+
+    private void cutRoomRelation(UUID playerUUID) {
         Integer roomId = getPlayerRoom(playerUUID);
         if (roomId != null) {
             removePlayer(playerUUID); // إزالة اللاعب من الغرفة
+            if (rooms.get(roomId).isEmpty()) {
+                clearRoom(roomId); // تنظيف الغرفة إذا أصبحت فارغة
+            }
         }
     }
 }
