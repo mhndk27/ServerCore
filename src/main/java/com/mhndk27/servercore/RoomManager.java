@@ -101,28 +101,39 @@ public class RoomManager {
             Object partySystem, // استبدل Object بكلاس البارتي سستم الحقيقي
             UUID playerUUID,
             int roomId) {
-        // هل اللاعب في بارتي؟
         boolean inParty = ((PartySystemInterface) partySystem).isPlayerInParty(playerUUID);
         if (!inParty) {
-            // انقله مباشرة
             teleportPartyToRoom(List.of(playerUUID), roomId);
             addPlayersToRoom(roomId, List.of(playerUUID));
             return true;
         }
-        // في بارتي
         UUID leader = ((PartySystemInterface) partySystem).getPartyLeader(playerUUID);
+        List<UUID> members = ((PartySystemInterface) partySystem).getPartyMembersOfPlayer(playerUUID);
         if (!playerUUID.equals(leader)) {
-            // ليس القائد
+            // أرسل رسالة للاعب نفسه
             Player player = Bukkit.getPlayer(playerUUID);
             if (player != null) {
-                player.sendMessage("Wait for the party leader or leave the party to join the room.");
+                player.sendMessage("Wait for the party leader to join the room or leave the party.");
+            }
+            // أرسل رسالة للقائد (اختياري)
+            Player leaderPlayer = Bukkit.getPlayer(leader);
+            if (leaderPlayer != null) {
+                leaderPlayer.sendMessage("A party member tried to join a room. Only the leader can move the party.");
             }
             return false;
         }
-        // هو القائد
-        List<UUID> members = ((PartySystemInterface) partySystem).getPartyMembersOfPlayer(playerUUID);
+        // هو القائد: انقل كل الأعضاء
         teleportPartyToRoom(members, roomId);
         addPlayersToRoom(roomId, members);
+        // أرسل رسالة لكل عضو (عدا القائد)
+        for (UUID uuid : members) {
+            if (!uuid.equals(leader)) {
+                Player member = Bukkit.getPlayer(uuid);
+                if (member != null) {
+                    member.sendMessage("The party leader moved you to a room.");
+                }
+            }
+        }
         return true;
     }
 
@@ -138,7 +149,6 @@ public class RoomManager {
             Location lobbyLocation) {
         boolean inParty = ((PartySystemInterface) partySystem).isPlayerInParty(playerUUID);
         if (!inParty) {
-            // انقله واعتبر الغرفة فاضية
             Player player = Bukkit.getPlayer(playerUUID);
             if (player != null)
                 player.teleport(lobbyLocation);
@@ -149,23 +159,27 @@ public class RoomManager {
             return;
         }
         UUID leader = ((PartySystemInterface) partySystem).getPartyLeader(playerUUID);
+        List<UUID> members = ((PartySystemInterface) partySystem).getPartyMembersOfPlayer(playerUUID);
         if (!playerUUID.equals(leader)) {
             // اطرده من البارتي
             ((PartySystemInterface) partySystem).kickPlayerFromParty(playerUUID);
             Player player = Bukkit.getPlayer(playerUUID);
-            if (player != null)
+            if (player != null) {
                 player.teleport(lobbyLocation);
+                player.sendMessage("You have been removed from the party and sent to the lobby.");
+            }
             Integer roomId = getPlayerRoom(playerUUID);
             if (roomId != null)
                 removePlayer(playerUUID);
             return;
         }
         // القائد: رجع كل الأعضاء للوبي بدون تفكيك التيم
-        List<UUID> members = ((PartySystemInterface) partySystem).getPartyMembersOfPlayer(playerUUID);
         for (UUID uuid : members) {
-            Player player = Bukkit.getPlayer(uuid);
-            if (player != null)
-                player.teleport(lobbyLocation);
+            Player member = Bukkit.getPlayer(uuid);
+            if (member != null) {
+                member.teleport(lobbyLocation);
+                member.sendMessage("The party leader sent you to the lobby.");
+            }
         }
         Integer roomId = getPlayerRoom(playerUUID);
         if (roomId != null)
