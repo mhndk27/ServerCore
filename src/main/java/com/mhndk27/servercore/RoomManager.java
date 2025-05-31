@@ -1,6 +1,7 @@
 package com.mhndk27.servercore;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -10,6 +11,9 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
+/**
+ * RoomManager: إدارة الغرف وتكاملها مع نظام البارتي.
+ */
 public class RoomManager {
     private final int ROOM_COUNT = 20;
     private final Map<Integer, List<UUID>> rooms = new HashMap<>();
@@ -67,12 +71,15 @@ public class RoomManager {
         return null;
     }
 
+    /**
+     * ينقل جميع أعضاء البارتي إلى مركز الغرفة المحددة مع ضبط الاتجاه.
+     */
     public void teleportPartyToRoom(List<UUID> partyMembers, int roomId) {
         Location center = getRoomCenter(roomId);
         if (center == null)
             return;
         Location facingLocation = center.clone();
-        facingLocation.setYaw(0); // اجعل اللاعب يواجه للأمام (جهة +Z)
+        facingLocation.setYaw(0); // جهة +Z
         for (UUID uuid : partyMembers) {
             Player player = Bukkit.getPlayer(uuid);
             if (player != null && player.isOnline()) {
@@ -81,14 +88,17 @@ public class RoomManager {
         }
     }
 
+    /**
+     * منطق نقل اللاعب أو البارتي إلى غرفة.
+     */
     public boolean handleRoomJoinRequest(
             PartySystemAPI partySystem,
             UUID playerUUID,
             int roomId) {
         boolean inParty = partySystem.isPlayerInParty(playerUUID);
         if (!inParty) {
-            teleportPartyToRoom(List.of(playerUUID), roomId);
-            addPlayersToRoom(roomId, List.of(playerUUID));
+            teleportPartyToRoom(Collections.singletonList(playerUUID), roomId);
+            addPlayersToRoom(roomId, Collections.singletonList(playerUUID));
             return true;
         }
         UUID leader = partySystem.getPartyLeader(playerUUID);
@@ -117,6 +127,9 @@ public class RoomManager {
         return true;
     }
 
+    /**
+     * منطق أمر العودة للوبي.
+     */
     public void handleLobbyCommand(
             PartySystemAPI partySystem,
             UUID playerUUID,
@@ -156,5 +169,32 @@ public class RoomManager {
         Integer roomId = getPlayerRoom(playerUUID);
         if (roomId != null)
             clearRoom(roomId);
+    }
+
+    /**
+     * إذا كان القائد في غرفة، ينقل العضو الجديد لنفس غرفة القائد.
+     * استدعِ هذه الدالة عند إضافة عضو جديد للبارتي.
+     */
+    public void syncPartyMemberWithLeaderRoom(PartySystemAPI partySystem, UUID newMemberUUID) {
+        UUID leader = partySystem.getPartyLeader(newMemberUUID);
+        if (leader == null)
+            return;
+        Integer leaderRoom = getPlayerRoom(leader);
+        if (leaderRoom == null)
+            return;
+        Integer memberRoom = getPlayerRoom(newMemberUUID);
+        if (leaderRoom.equals(memberRoom))
+            return;
+        Location center = getRoomCenter(leaderRoom);
+        if (center != null) {
+            Location facingLocation = center.clone();
+            facingLocation.setYaw(0);
+            Player player = Bukkit.getPlayer(newMemberUUID);
+            if (player != null && player.isOnline()) {
+                player.teleport(facingLocation);
+                addPlayersToRoom(leaderRoom, Collections.singletonList(newMemberUUID));
+                player.sendMessage("You have been teleported to your party leader's room.");
+            }
+        }
     }
 }
