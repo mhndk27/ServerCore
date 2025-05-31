@@ -30,10 +30,10 @@ public class RoomManager {
 
     public Integer findEmptyRoom() {
         for (int i = 1; i <= ROOM_COUNT; i++) {
-            if (rooms.get(i).isEmpty())
+            if (rooms.get(i).isEmpty()) // تحقق إذا الغرفة فاضية
                 return i;
         }
-        return null;
+        return null; // إذا لم توجد أي غرفة فاضية
     }
 
     public void addPlayersToRoom(int roomId, List<UUID> players) {
@@ -100,9 +100,29 @@ public class RoomManager {
 
     public boolean handleRoomJoinRequest(
             PartySystemAPI partySystem,
-            UUID playerUUID,
-            int roomId) {
+            UUID playerUUID) {
         boolean inParty = partySystem.isPlayerInParty(playerUUID);
+        Integer currentRoom = getPlayerRoom(playerUUID);
+
+        // تحقق إذا اللاعب موجود بالفعل في غرفة
+        if (currentRoom != null) {
+            Player player = getPlayer(playerUUID);
+            if (player != null) {
+                player.sendMessage("§c§l[Error] §r§cYou are already in a room (Room #" + currentRoom + ").");
+            }
+            return false; // لا يتم النقل إذا كان اللاعب بالفعل في غرفة
+        }
+
+        // البحث عن أول غرفة فاضية
+        Integer roomId = findEmptyRoom();
+        if (roomId == null) {
+            Player player = getPlayer(playerUUID);
+            if (player != null) {
+                player.sendMessage("§c§l[Error] §r§cNo available rooms at the moment.");
+            }
+            return false; // لا يتم النقل إذا لم توجد أي غرفة فاضية
+        }
+
         if (!inParty) {
             teleportPartyToRoom(Collections.singletonList(playerUUID), roomId);
             addPlayersToRoom(roomId, Collections.singletonList(playerUUID));
@@ -112,6 +132,7 @@ public class RoomManager {
             }
             return true;
         }
+
         UUID leader = partySystem.getPartyLeader(playerUUID);
         List<UUID> members = partySystem.getPartyMembersOfPlayer(playerUUID);
         Integer partyRoom = getPartyRoom(members);

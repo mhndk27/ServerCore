@@ -38,15 +38,10 @@ public class TptCommand implements CommandExecutor, TabCompleter {
 
         switch (target) {
             case "zombie_shooter" -> {
-                Integer roomId = roomManager.findEmptyRoom();
-                if (roomId == null) {
-                    player.sendMessage("§cNo available rooms at the moment.");
-                    return true;
-                }
-                boolean result = roomManager.handleRoomJoinRequest(partyAPI, uuid, roomId);
+                boolean result = roomManager.handleRoomJoinRequest(partyAPI, uuid);
                 if (!result)
                     return true; // الرسائل ترسل تلقائياً من RoomManager
-                player.sendMessage("§aYou have been teleported to Zombie Shooter (Room #" + roomId + ").");
+                player.sendMessage("§aYou have been teleported to Zombie Shooter.");
             }
             case "lobby" -> {
                 Location lobbyLocation = new Location(player.getWorld(), 0.5, 16, 0.5);
