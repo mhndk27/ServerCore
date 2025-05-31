@@ -154,37 +154,24 @@ public class RoomManager {
         return true;
     }
 
-    public void handleLobbyCommand(
-            PartySystemAPI partySystem,
-            UUID playerUUID,
-            Location lobbyLocation) {
+    public void handleLobbyCommand(PartySystemAPI partySystem, UUID playerUUID, Location lobbyLocation) {
         teleportPlayerToLocation(playerUUID, lobbyLocation);
-        cutRoomRelation(playerUUID); // قطع علاقة اللاعب بالغرفة
+        removePlayer(playerUUID); // فصل اللاعب عن الغرفة
     }
 
     public void handlePartyDisband(UUID leaderUUID) {
-        cutRoomRelation(leaderUUID); // قطع علاقة القائد بالغرفة
+        removePlayer(leaderUUID); // فصل القائد عن الغرفة
     }
 
     public void handlePlayerLeaveParty(UUID playerUUID) {
-        cutRoomRelation(playerUUID); // قطع علاقة اللاعب بالغرفة
+        removePlayer(playerUUID); // فصل اللاعب عن الغرفة
     }
 
     public void handlePlayerKick(UUID playerUUID) {
-        cutRoomRelation(playerUUID); // قطع علاقة اللاعب بالغرفة
+        removePlayer(playerUUID); // فصل اللاعب عن الغرفة
     }
 
     public void handlePlayerDisconnect(UUID playerUUID) {
-        cutRoomRelation(playerUUID); // قطع علاقة اللاعب بالغرفة عند مغادرة السيرفر
-    }
-
-    private void cutRoomRelation(UUID playerUUID) {
-        Integer roomId = getPlayerRoom(playerUUID);
-        if (roomId != null) {
-            removePlayer(playerUUID); // إزالة اللاعب من الغرفة
-            if (rooms.get(roomId).isEmpty()) {
-                clearRoom(roomId); // تنظيف الغرفة إذا أصبحت فارغة
-            }
-        }
+        removePlayer(playerUUID); // فصل اللاعب عن الغرفة عند مغادرة السيرفر
     }
 }
