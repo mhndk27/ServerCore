@@ -88,8 +88,17 @@ public class PartyManager {
             return false;
 
         boolean added = party.addMember(targetUUID);
-        if (added)
+        if (added) {
             addParty(party);
+            // مزامنة العضو الجديد مع غرفة القائد إذا كان القائد في غرفة
+            org.bukkit.plugin.Plugin plugin = org.bukkit.Bukkit.getPluginManager().getPlugin("servercore");
+            if (plugin != null && plugin.isEnabled()) {
+                com.mhndk27.servercore.Main main = (com.mhndk27.servercore.Main) plugin;
+                if (main.getPartyAPI() != null) {
+                    main.getRoomManager().syncPartyMemberWithLeaderRoom(main.getPartyAPI(), targetUUID);
+                }
+            }
+        }
         return added;
     }
 
