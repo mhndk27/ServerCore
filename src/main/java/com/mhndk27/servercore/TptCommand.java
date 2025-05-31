@@ -23,7 +23,7 @@ public class TptCommand implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player player)) {
-            sender.sendMessage("Players only.");
+            sender.sendMessage("§cPlayers only.");
             return true;
         }
         if (args.length != 1) {
@@ -36,53 +36,29 @@ public class TptCommand implements CommandExecutor, TabCompleter {
         RoomManager roomManager = plugin.getRoomManager();
         UUID uuid = player.getUniqueId();
 
-        if (target.equals("zombie_shooter")) {
-            if (partyAPI != null) {
+        switch (target) {
+            case "zombie_shooter" -> {
                 Integer roomId = roomManager.findEmptyRoom();
                 if (roomId == null) {
                     player.sendMessage("§cNo available rooms at the moment.");
                     return true;
                 }
                 boolean result = roomManager.handleRoomJoinRequest(partyAPI, uuid, roomId);
-                if (!result) {
-                    // الرسائل ترسل تلقائياً من RoomManager
-                    return true;
-                }
+                if (!result)
+                    return true; // الرسائل ترسل تلقائياً من RoomManager
                 player.sendMessage("§aYou have been teleported to Zombie Shooter (Room #" + roomId + ").");
-            } else {
-                Integer currentRoom = roomManager.getPlayerRoom(uuid);
-                if (currentRoom != null) {
-                    Location center = roomManager.getRoomCenter(currentRoom);
-                    player.teleport(center);
-                    player.sendMessage("§aYou are already in Zombie Shooter (Room #" + currentRoom + ")");
-                    return true;
-                }
-                Integer roomId = roomManager.findEmptyRoom();
-                if (roomId == null) {
-                    player.sendMessage("§cNo available rooms at the moment.");
-                    return true;
-                }
-                Location center = roomManager.getRoomCenter(roomId);
-                player.teleport(center);
-                roomManager.addPlayersToRoom(roomId, Collections.singletonList(uuid));
-                player.sendMessage("§aYou have been teleported to Zombie Shooter (Room #" + roomId + ")");
             }
-            return true;
-        }
-
-        if (target.equals("lobby")) {
-            Location lobbyLocation = new Location(player.getWorld(), 0, 16, 0);
-            if (partyAPI != null) {
-                roomManager.handleLobbyCommand(partyAPI, uuid, lobbyLocation);
-            } else {
-                player.teleport(lobbyLocation);
-                roomManager.removePlayer(uuid);
-                player.sendMessage("§aYou have been sent to the lobby.");
+            case "lobby" -> {
+                Location lobbyLocation = new Location(player.getWorld(), 0, 16, 0);
+                if (partyAPI != null) {
+                    roomManager.handleLobbyCommand(partyAPI, uuid, lobbyLocation);
+                } else {
+                    player.teleport(lobbyLocation);
+                    roomManager.removePlayer(uuid);
+                }
             }
-            return true;
+            default -> player.sendMessage("§cUsage: /tpt <zombie_shooter|lobby>");
         }
-
-        player.sendMessage("§cUsage: /tpt <zombie_shooter|lobby>");
         return true;
     }
 

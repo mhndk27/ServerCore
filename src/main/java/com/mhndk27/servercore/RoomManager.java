@@ -71,9 +71,14 @@ public class RoomManager {
         return null;
     }
 
-    private void teleportPlayerToLocation(UUID uuid, Location loc) {
+    private Player getPlayer(UUID uuid) {
         Player player = Bukkit.getPlayer(uuid);
-        if (player != null && player.isOnline()) {
+        return (player != null && player.isOnline()) ? player : null;
+    }
+
+    private void teleportPlayerToLocation(UUID uuid, Location loc) {
+        Player player = getPlayer(uuid);
+        if (player != null) {
             player.teleport(loc);
         }
     }
@@ -115,15 +120,11 @@ public class RoomManager {
                     facingLocation.setYaw(180);
                     teleportPlayerToLocation(playerUUID, facingLocation);
                     addPlayersToRoom(partyRoom, Collections.singletonList(playerUUID));
-                    Player player = Bukkit.getPlayer(playerUUID);
-                    if (player != null) {
-                        player.sendMessage("You have joined your party in the room.");
-                    }
                 }
             } else {
-                Player player = Bukkit.getPlayer(playerUUID);
+                Player player = getPlayer(playerUUID);
                 if (player != null) {
-                    player.sendMessage("Wait for the party leader to join the room or leave the party.");
+                    player.sendMessage("§cWait for the party leader to join the room or leave the party.");
                 }
             }
             return false;
@@ -136,14 +137,6 @@ public class RoomManager {
             facingLocation.setYaw(180);
             teleportPlayersToLocation(members, facingLocation);
             addPlayersToRoom(targetRoom, members);
-            for (UUID uuid : members) {
-                if (!uuid.equals(leader)) {
-                    Player member = Bukkit.getPlayer(uuid);
-                    if (member != null) {
-                        member.sendMessage("The party leader moved you to a room.");
-                    }
-                }
-            }
         }
         return true;
     }
@@ -167,9 +160,9 @@ public class RoomManager {
         if (!playerUUID.equals(leader)) {
             partySystem.kickPlayerFromParty(playerUUID);
             teleportPlayerToLocation(playerUUID, lobbyLocation);
-            Player player = Bukkit.getPlayer(playerUUID);
+            Player player = getPlayer(playerUUID);
             if (player != null) {
-                player.sendMessage("You have been removed from the party and sent to the lobby.");
+                player.sendMessage("§cYou have been removed from the party and sent to the lobby.");
             }
             Integer roomId = getPlayerRoom(playerUUID);
             if (roomId != null)
@@ -178,12 +171,6 @@ public class RoomManager {
         }
 
         teleportPlayersToLocation(members, lobbyLocation);
-        for (UUID uuid : members) {
-            Player member = Bukkit.getPlayer(uuid);
-            if (member != null) {
-                member.sendMessage("The party leader sent you to the lobby.");
-            }
-        }
         Integer roomId = getPlayerRoom(playerUUID);
         if (roomId != null)
             clearRoom(roomId);
@@ -198,8 +185,8 @@ public class RoomManager {
         Integer leaderRoom = getPlayerRoom(leader);
         if (leaderRoom == null)
             return;
-        Player leaderPlayer = Bukkit.getPlayer(leader);
-        if (leaderPlayer == null || !leaderPlayer.isOnline())
+        Player leaderPlayer = getPlayer(leader);
+        if (leaderPlayer == null)
             return;
         Integer memberRoom = getPlayerRoom(newMemberUUID);
         if (leaderRoom.equals(memberRoom))
@@ -210,10 +197,6 @@ public class RoomManager {
             facingLocation.setYaw(180);
             teleportPlayerToLocation(newMemberUUID, facingLocation);
             addPlayersToRoom(leaderRoom, Collections.singletonList(newMemberUUID));
-            Player player = Bukkit.getPlayer(newMemberUUID);
-            if (player != null) {
-                player.sendMessage("You have been teleported to your party leader's room.");
-            }
         }
     }
 }
