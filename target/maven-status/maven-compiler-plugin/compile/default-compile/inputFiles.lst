@@ -1,8 +1,4 @@
-C:\Users\mohan\Downloads\THENETHER\tpm\src\main\java\com\mhndk27\tpm\data\RoomData.java
-C:\Users\mohan\Downloads\THENETHER\tpm\src\main\java\com\mhndk27\tpm\commands\LobbyTPCommand.java
-C:\Users\mohan\Downloads\THENETHER\tpm\src\main\java\com\mhndk27\tpm\commands\ZSTPCommand.java
-C:\Users\mohan\Downloads\THENETHER\tpm\src\main\java\com\mhndk27\tpm\TPMPlugin.java
-C:\Users\mohan\Downloads\THENETHER\tpm\src\main\java\com\mhndk27\tpm\utils\TeleportUtils.java
-C:\Users\mohan\Downloads\THENETHER\tpm\src\main\java\com\mhndk27\tpm\managers\RoomManager.java
-C:\Users\mohan\Downloads\THENETHER\tpm\src\main\java\com\mhndk27\tpm\managers\NPCFileManager.java
-C:\Users\mohan\Downloads\THENETHER\tpm\src\main\java\com\mhndk27\tpm\utils\SchematicUtils.java
+C:\Users\mohan\Downloads\THENETHER\servercore\src\main\java\com\mhndk27\servercore\RoomManager.java
+C:\Users\mohan\Downloads\THENETHER\servercore\src\main\java\com\mhndk27\servercore\Main.java
+C:\Users\mohan\Downloads\THENETHER\servercore\src\main\java\com\mhndk27\servercore\PartySystemAPI.java
+C:\Users\mohan\Downloads\THENETHER\servercore\src\main\java\com\mhndk27\servercore\TptCommand.java

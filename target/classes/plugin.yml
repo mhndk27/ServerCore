@@ -1,23 +1,15 @@
-name: TPM
+name: servercore
 version: 1.0
-main: com.mhndk27.tpm.TPMPlugin
+main: com.mhndk27.servercore.Main
 api-version: 1.20
-author: mhndk27
 
 commands:
-  zstp:
-    description: Create and teleport to zombie shooter waiting room.
-    usage: /zstp <player>
-    permission: tpm.zstp
-    permission-message: You don't have permission to use this command.
-  lobbytp:
-    description: Return a player (or party) to lobby and cleanup.
-    usage: /lobbytp <player>
-    permission: tpm.lobbytp
-    permission-message: You don't have permission to use this command.
+  tpt:
+    description: Teleport to minigame or lobby
+    usage: /tpt <zombie_shooter|lobby>
 
 permissions:
-  tpm.zstp:
+  servercore.zstp:
     default: op
-  tpm.lobbytp:
+  servercore.lobbytp:
     default: op

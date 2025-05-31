@@ -1,8 +1,4 @@
-com\mhndk27\tpm\utils\SchematicUtils.class
-com\mhndk27\tpm\utils\TeleportUtils.class
-com\mhndk27\tpm\managers\NPCFileManager.class
-com\mhndk27\tpm\commands\LobbyTPCommand.class
-com\mhndk27\tpm\data\RoomData.class
-com\mhndk27\tpm\managers\RoomManager.class
-com\mhndk27\tpm\commands\ZSTPCommand.class
-com\mhndk27\tpm\TPMPlugin.class
+com\mhndk27\servercore\Main.class
+com\mhndk27\servercore\RoomManager.class
+com\mhndk27\servercore\PartySystemAPI.class
+com\mhndk27\servercore\TptCommand.class
