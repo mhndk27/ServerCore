@@ -153,6 +153,12 @@ public class RoomManager {
                     teleportPlayerToLocation(playerUUID, facingLocation);
                     addPlayersToRoom(partyRoom, Collections.singletonList(playerUUID));
                 }
+            } else {
+                Player player = getPlayer(playerUUID);
+                if (player != null) {
+                    player.sendMessage(
+                            "§c§l[Error] §r§cWait for the party leader to choose a room or leave the party.");
+                }
             }
             return false;
         }
@@ -172,43 +178,11 @@ public class RoomManager {
             PartySystemAPI partySystem,
             UUID playerUUID,
             Location lobbyLocation) {
-        boolean inParty = partySystem.isPlayerInParty(playerUUID);
-        if (!inParty) {
-            teleportPlayerToLocation(playerUUID, lobbyLocation);
-            Integer roomId = getPlayerRoom(playerUUID);
-            if (roomId != null) {
-                clearRoom(roomId);
-                removePlayer(playerUUID); // إزالة اللاعب من الغرفة بشكل صحيح
-            }
-            Player player = getPlayer(playerUUID);
-            if (player != null) {
-                player.sendMessage("§e§l[Notice] §r§eYou have been teleported to the lobby.");
-            }
-            return;
-        }
-        UUID leader = partySystem.getPartyLeader(playerUUID);
-        List<UUID> members = partySystem.getPartyMembersOfPlayer(playerUUID);
-
-        if (!playerUUID.equals(leader)) {
-            partySystem.kickPlayerFromParty(playerUUID);
-            Player player = getPlayer(playerUUID);
-            if (player != null) {
-                player.sendMessage("§c§l[Warning] §r§cYou have been removed from the party.");
-            }
-            return;
-        }
-
-        teleportPlayersToLocation(members, lobbyLocation);
-        for (UUID uuid : members) {
-            Player member = getPlayer(uuid);
-            if (member != null) {
-                member.sendMessage("§e§l[Notice] §r§eThe party leader sent you to the lobby.");
-            }
-        }
+        teleportPlayerToLocation(playerUUID, lobbyLocation);
         Integer roomId = getPlayerRoom(playerUUID);
         if (roomId != null) {
             clearRoom(roomId);
-            removePlayer(playerUUID); // إزالة القائد وأعضاء البارتي من الغرفة بشكل صحيح
+            removePlayer(playerUUID); // إزالة اللاعب من الغرفة بشكل صحيح
         }
     }
 
