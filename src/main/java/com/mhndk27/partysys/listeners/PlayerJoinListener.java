@@ -1,9 +1,10 @@
 package com.mhndk27.partysys.listeners;
 
-import com.mhndk27.partysys.PartyManager;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
+
+import com.mhndk27.partysys.PartyManager;
 
 public class PlayerJoinListener implements Listener {
 

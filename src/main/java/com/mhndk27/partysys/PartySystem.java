@@ -1,11 +1,14 @@
 package com.mhndk27.partysys;
 
+import org.bukkit.plugin.java.JavaPlugin;
+
 import com.mhndk27.partysys.commands.PartyCommand;
 import com.mhndk27.partysys.commands.PartyTabCompleter;
 import com.mhndk27.partysys.listeners.PartyChatListener;
 import com.mhndk27.partysys.listeners.PlayerJoinListener;
 import com.mhndk27.partysys.listeners.PlayerQuitListener;
-import org.bukkit.plugin.java.JavaPlugin;
+import com.mhndk27.partysys.managers.PartyChatManager;
+import com.mhndk27.partysys.managers.PartyInviteManager;
 
 public class PartySystem extends JavaPlugin {
 
@@ -14,6 +17,10 @@ public class PartySystem extends JavaPlugin {
     @Override
     public void onEnable() {
         partyManager = new PartyManager();
+
+        // تسجيل مدراء جدد
+        new PartyInviteManager(partyManager);
+        new PartyChatManager(partyManager);
 
         // تسجيل الأمر مع التنفيذ والتنقيح (TabCompleter)
         getCommand("party").setExecutor(new PartyCommand(partyManager));

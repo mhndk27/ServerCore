@@ -1,21 +1,26 @@
 package com.mhndk27.partysys.commands;
 
-import com.mhndk27.partysys.Party;
-import com.mhndk27.partysys.PartyManager;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.bukkit.Bukkit;
-import org.bukkit.command.*;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import com.mhndk27.partysys.Party;
+import com.mhndk27.partysys.PartyManager;
 
 public class PartyTabCompleter implements TabCompleter {
 
     private final PartyManager partyManager;
     private final List<String> subcommands = Arrays.asList(
-        "create", "invite", "kick", "leave", "promote", "disband", "chat", "accept", "deny"
-    );
+            "create", "invite", "kick", "leave", "promote", "disband", "chat", "accept", "deny");
 
     public PartyTabCompleter(PartyManager partyManager) {
         this.partyManager = partyManager;
@@ -37,10 +42,12 @@ public class PartyTabCompleter implements TabCompleter {
             String subcommand = args[0].toLowerCase();
             UUID playerUUID = player.getUniqueId();
 
-            if (!partyManager.isInParty(playerUUID)) return Collections.emptyList();
+            if (!partyManager.isInParty(playerUUID))
+                return Collections.emptyList();
 
             Party party = partyManager.getParty(playerUUID);
-            if (party == null) return Collections.emptyList();
+            if (party == null)
+                return Collections.emptyList();
 
             switch (subcommand) {
                 case "invite" -> {

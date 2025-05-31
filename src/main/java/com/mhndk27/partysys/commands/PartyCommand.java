@@ -1,8 +1,9 @@
 package com.mhndk27.partysys.commands;
 
-import com.mhndk27.partysys.Party;
-import com.mhndk27.partysys.PartyManager;
-import com.mhndk27.partysys.utils.MessageUtils;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -11,10 +12,11 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import com.mhndk27.partysys.Party;
+import com.mhndk27.partysys.PartyManager;
+import com.mhndk27.partysys.managers.PartyChatManager;
+import com.mhndk27.partysys.managers.PartyInviteManager;
+import com.mhndk27.partysys.utils.MessageUtils;
 
 public class PartyCommand implements CommandExecutor, TabCompleter {
 
@@ -36,7 +38,8 @@ public class PartyCommand implements CommandExecutor, TabCompleter {
         UUID playerUUID = player.getUniqueId();
 
         if (args.length == 0) {
-            player.sendMessage(MessageUtils.info("Usage: /party <create|invite|accept|deny|leave|kick|promote|disband|chat>"));
+            player.sendMessage(
+                    MessageUtils.info("Usage: /party <create|invite|accept|deny|leave|kick|promote|disband|chat>"));
             return true;
         }
 
@@ -86,28 +89,32 @@ public class PartyCommand implements CommandExecutor, TabCompleter {
                     return true;
                 }
 
-                partyManager.addInvite(target.getUniqueId(), playerUUID);
+                PartyInviteManager inviteManager = PartyInviteManager.getInstance();
+                inviteManager.addInvite(target.getUniqueId(), playerUUID);
                 player.sendMessage(MessageUtils.success("Invite sent to " + targetName));
-                target.sendMessage(MessageUtils.info(player.getName() + " invited you to join their party. Use /party accept to join or /party deny to refuse."));
+                target.sendMessage(MessageUtils.info(player.getName()
+                        + " invited you to join their party. Use /party accept to join or /party deny to refuse."));
                 break;
 
             case "accept":
-                if (!partyManager.hasInvite(playerUUID)) {
+                PartyInviteManager inviteManagerAccept = PartyInviteManager.getInstance();
+                if (!inviteManagerAccept.hasInvite(playerUUID)) {
                     player.sendMessage(MessageUtils.error("You have no pending party invites."));
                     return true;
                 }
-                boolean accepted = partyManager.acceptInvite(playerUUID);
+                boolean accepted = inviteManagerAccept.acceptInvite(playerUUID);
                 if (!accepted) {
                     player.sendMessage(MessageUtils.error("Failed to join the party."));
                 }
                 break;
 
             case "deny":
-                if (!partyManager.hasInvite(playerUUID)) {
+                PartyInviteManager inviteManagerDeny = PartyInviteManager.getInstance();
+                if (!inviteManagerDeny.hasInvite(playerUUID)) {
                     player.sendMessage(MessageUtils.error("You have no pending party invites."));
                     return true;
                 }
-                partyManager.denyInvite(playerUUID);
+                inviteManagerDeny.denyInvite(playerUUID);
                 break;
 
             case "leave":
@@ -205,10 +212,9 @@ public class PartyCommand implements CommandExecutor, TabCompleter {
                 break;
 
             case "chat":
-                boolean enabled = partyManager.togglePartyChat(playerUUID);
-                player.sendMessage(enabled ?
-                        MessageUtils.success("Party chat enabled.") :
-                        MessageUtils.info("Party chat disabled."));
+                boolean enabled = PartyChatManager.getInstance().togglePartyChat(playerUUID);
+                player.sendMessage(enabled ? MessageUtils.success("Party chat enabled.")
+                        : MessageUtils.info("Party chat disabled."));
                 break;
 
             default:
@@ -221,7 +227,8 @@ public class PartyCommand implements CommandExecutor, TabCompleter {
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        if (!(sender instanceof Player)) return Collections.emptyList();
+        if (!(sender instanceof Player))
+            return Collections.emptyList();
 
         Player player = (Player) sender;
         UUID playerUUID = player.getUniqueId();
@@ -229,7 +236,8 @@ public class PartyCommand implements CommandExecutor, TabCompleter {
         List<String> completions = new ArrayList<>();
 
         if (args.length == 1) {
-            List<String> subs = List.of("create", "invite", "accept", "deny", "leave", "kick", "promote", "disband", "chat");
+            List<String> subs = List.of("create", "invite", "accept", "deny", "leave", "kick", "promote", "disband",
+                    "chat");
             for (String sub : subs) {
                 if (sub.startsWith(args[0].toLowerCase())) {
                     completions.add(sub);
@@ -245,7 +253,8 @@ public class PartyCommand implements CommandExecutor, TabCompleter {
                 case "invite":
                     // إكمال تلقائي بلايرز أونلاين غير في بارتي
                     for (Player online : Bukkit.getOnlinePlayers()) {
-                        if (!partyManager.isInParty(online.getUniqueId()) && online.getName().toLowerCase().startsWith(args[1].toLowerCase())) {
+                        if (!partyManager.isInParty(online.getUniqueId())
+                                && online.getName().toLowerCase().startsWith(args[1].toLowerCase())) {
                             completions.add(online.getName());
                         }
                     }
@@ -258,7 +267,8 @@ public class PartyCommand implements CommandExecutor, TabCompleter {
                     if (party != null) {
                         for (UUID memberUUID : party.getMembers()) {
                             String name = partyManager.getPlayerName(memberUUID);
-                            if (name != null && !memberUUID.equals(playerUUID) && name.toLowerCase().startsWith(args[1].toLowerCase())) {
+                            if (name != null && !memberUUID.equals(playerUUID)
+                                    && name.toLowerCase().startsWith(args[1].toLowerCase())) {
                                 completions.add(name);
                             }
                         }
