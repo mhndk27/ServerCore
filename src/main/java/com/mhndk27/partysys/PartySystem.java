@@ -41,4 +41,7 @@ public class PartySystem extends JavaPlugin {
     public PartyManager getPartyManager() {
         return partyManager;
     }
+
+    // يمكنك استدعاء PartySystem.getPlugin(PartySystem.class).getPartyManager() من
+    // أي بلوقن آخر
 }

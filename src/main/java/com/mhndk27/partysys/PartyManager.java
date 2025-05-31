@@ -193,4 +193,50 @@ public class PartyManager {
         Party party = getParty(leader);
         return party != null && party.getLeaderUUID().equals(leader) ? party : null;
     }
+
+    // هل اللاعب في بارتي؟
+    public boolean isPlayerInParty(UUID playerUUID) {
+        return isInParty(playerUUID);
+    }
+
+    // جلب قائد البارتي للاعب
+    public UUID getPartyLeader(UUID playerUUID) {
+        Party party = getParty(playerUUID);
+        return (party != null) ? party.getLeaderUUID() : null;
+    }
+
+    // جلب أعضاء البارتي للاعب
+    public List<UUID> getPartyMembersOfPlayer(UUID playerUUID) {
+        Party party = getParty(playerUUID);
+        return (party != null) ? new ArrayList<>(party.getMembers()) : Collections.emptyList();
+    }
+
+    // جلب كائن البارتي للاعب (للاستخدام المتقدم)
+    public Party getPlayerParty(UUID playerUUID) {
+        return getParty(playerUUID);
+    }
+
+    // جلب عدد أعضاء البارتي
+    public int getPartySize(UUID playerUUID) {
+        Party party = getParty(playerUUID);
+        return (party != null) ? party.getMembers().size() : 0;
+    }
+
+    /**
+     * طرد لاعب من البارتي الخاص به (يمكن استدعاؤها من أي بلوقن خارجي)
+     * 
+     * @param targetUUID UUID اللاعب المراد طرده
+     * @return true إذا تم الطرد بنجاح، false إذا لم يكن في بارتي
+     */
+    public boolean kickPlayerFromParty(UUID targetUUID) {
+        Party party = getParty(targetUUID);
+        if (party == null)
+            return false;
+        UUID leaderUUID = party.getLeaderUUID();
+        if (leaderUUID.equals(targetUUID)) {
+            // لا يمكن طرد القائد بهذه الدالة
+            return false;
+        }
+        return removeMember(leaderUUID, targetUUID);
+    }
 }

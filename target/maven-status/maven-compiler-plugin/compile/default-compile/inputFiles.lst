@@ -3,6 +3,8 @@ C:\Users\mohan\Downloads\THENETHER\PartySystem\src\main\java\com\mhndk27\partysy
 C:\Users\mohan\Downloads\THENETHER\PartySystem\src\main\java\com\mhndk27\partysys\listeners\PartyChatListener.java
 C:\Users\mohan\Downloads\THENETHER\PartySystem\src\main\java\com\mhndk27\partysys\listeners\PlayerJoinListener.java
 C:\Users\mohan\Downloads\THENETHER\PartySystem\src\main\java\com\mhndk27\partysys\listeners\PlayerQuitListener.java
+C:\Users\mohan\Downloads\THENETHER\PartySystem\src\main\java\com\mhndk27\partysys\managers\PartyChatManager.java
+C:\Users\mohan\Downloads\THENETHER\PartySystem\src\main\java\com\mhndk27\partysys\managers\PartyInviteManager.java
 C:\Users\mohan\Downloads\THENETHER\PartySystem\src\main\java\com\mhndk27\partysys\Party.java
 C:\Users\mohan\Downloads\THENETHER\PartySystem\src\main\java\com\mhndk27\partysys\PartyManager.java
 C:\Users\mohan\Downloads\THENETHER\PartySystem\src\main\java\com\mhndk27\partysys\PartySystem.java
