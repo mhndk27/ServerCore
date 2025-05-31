@@ -13,3 +13,6 @@ permissions:
     default: op
   servercore.lobbytp:
     default: op
+
+depend:
+  - PartySystem
