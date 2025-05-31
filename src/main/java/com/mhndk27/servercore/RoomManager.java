@@ -71,7 +71,6 @@ public class RoomManager {
         return null;
     }
 
-    // ينقل لاعب واحد مع ضبط الوجه
     private void teleportPlayerToLocation(UUID uuid, Location loc) {
         Player player = Bukkit.getPlayer(uuid);
         if (player != null && player.isOnline()) {
@@ -79,14 +78,12 @@ public class RoomManager {
         }
     }
 
-    // ينقل مجموعة لاعبين مع ضبط الوجه
     private void teleportPlayersToLocation(List<UUID> uuids, Location loc) {
         for (UUID uuid : uuids) {
             teleportPlayerToLocation(uuid, loc);
         }
     }
 
-    // ينقل جميع أعضاء البارتي إلى مركز الغرفة المحددة مع ضبط الاتجاه -Z
     public void teleportPartyToRoom(List<UUID> partyMembers, int roomId) {
         Location center = getRoomCenter(roomId);
         if (center == null)
@@ -96,7 +93,6 @@ public class RoomManager {
         teleportPlayersToLocation(partyMembers, facingLocation);
     }
 
-    // منطق نقل اللاعب أو البارتي إلى غرفة
     public boolean handleRoomJoinRequest(
             PartySystemAPI partySystem,
             UUID playerUUID,
@@ -112,7 +108,6 @@ public class RoomManager {
         Integer partyRoom = getPartyRoom(members);
 
         if (!playerUUID.equals(leader)) {
-            // العضو: فقط ينقل إذا البارتي أصلاً في غرفة
             if (partyRoom != null) {
                 Location center = getRoomCenter(partyRoom);
                 if (center != null) {
@@ -134,7 +129,6 @@ public class RoomManager {
             return false;
         }
 
-        // القائد: ينقل كل الأعضاء معه (حتى لو كانوا في اللوبي)
         int targetRoom = (partyRoom != null) ? partyRoom : roomId;
         Location center = getRoomCenter(targetRoom);
         if (center != null) {
@@ -154,7 +148,6 @@ public class RoomManager {
         return true;
     }
 
-    // منطق أمر العودة للوبي
     public void handleLobbyCommand(
             PartySystemAPI partySystem,
             UUID playerUUID,
@@ -172,7 +165,6 @@ public class RoomManager {
         List<UUID> members = partySystem.getPartyMembersOfPlayer(playerUUID);
 
         if (!playerUUID.equals(leader)) {
-            // العضو: طرده من البارتي ثم نقله للوبي
             partySystem.kickPlayerFromParty(playerUUID);
             teleportPlayerToLocation(playerUUID, lobbyLocation);
             Player player = Bukkit.getPlayer(playerUUID);
@@ -185,7 +177,6 @@ public class RoomManager {
             return;
         }
 
-        // القائد: ينقل كل الأعضاء معه للوبي بدون تفكيك البارتي
         teleportPlayersToLocation(members, lobbyLocation);
         for (UUID uuid : members) {
             Player member = Bukkit.getPlayer(uuid);
@@ -198,7 +189,6 @@ public class RoomManager {
             clearRoom(roomId);
     }
 
-    // إذا كان القائد في غرفة، ينقل العضو الجديد لنفس غرفة القائد
     public void syncPartyMemberWithLeaderRoom(PartySystemAPI partySystem, UUID newMemberUUID) {
         if (partySystem == null)
             return;
@@ -207,6 +197,9 @@ public class RoomManager {
             return;
         Integer leaderRoom = getPlayerRoom(leader);
         if (leaderRoom == null)
+            return;
+        Player leaderPlayer = Bukkit.getPlayer(leader);
+        if (leaderPlayer == null || !leaderPlayer.isOnline())
             return;
         Integer memberRoom = getPlayerRoom(newMemberUUID);
         if (leaderRoom.equals(memberRoom))

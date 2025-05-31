@@ -30,7 +30,7 @@ public class Main extends JavaPlugin {
             getLogger().info("PartyManager initialized and PartySystemAPI linked.");
         } else {
             partyAPI = null;
-            getLogger().warning("PartySystem not found! Party features will be disabled.");
+            getLogger().warning("PartySystem not found or disabled! Party features will be unavailable.");
         }
 
         TptCommand tptCommand = new TptCommand(this);
