@@ -79,7 +79,7 @@ public class RoomManager {
         if (center == null)
             return;
         Location facingLocation = center.clone();
-        facingLocation.setYaw(0); // جهة +Z
+        facingLocation.setYaw(180); // جهة -Z (عكس السابق)
         for (UUID uuid : partyMembers) {
             Player player = Bukkit.getPlayer(uuid);
             if (player != null && player.isOnline()) {
@@ -103,19 +103,35 @@ public class RoomManager {
         }
         UUID leader = partySystem.getPartyLeader(playerUUID);
         List<UUID> members = partySystem.getPartyMembersOfPlayer(playerUUID);
+        Integer partyRoom = getPartyRoom(members);
+
         if (!playerUUID.equals(leader)) {
-            Player player = Bukkit.getPlayer(playerUUID);
-            if (player != null) {
-                player.sendMessage("Wait for the party leader to join the room or leave the party.");
-            }
-            Player leaderPlayer = Bukkit.getPlayer(leader);
-            if (leaderPlayer != null) {
-                leaderPlayer.sendMessage("A party member tried to join a room. Only the leader can move the party.");
+            // العضو: إذا البارتي في غرفة، ينقل لنفس الغرفة، وإلا رسالة انتظار القائد
+            if (partyRoom != null) {
+                Location center = getRoomCenter(partyRoom);
+                if (center != null) {
+                    Location facingLocation = center.clone();
+                    facingLocation.setYaw(180);
+                    Player player = Bukkit.getPlayer(playerUUID);
+                    if (player != null && player.isOnline()) {
+                        player.teleport(facingLocation);
+                        addPlayersToRoom(partyRoom, Collections.singletonList(playerUUID));
+                        player.sendMessage("You have joined your party in the room.");
+                    }
+                }
+            } else {
+                Player player = Bukkit.getPlayer(playerUUID);
+                if (player != null) {
+                    player.sendMessage("Wait for the party leader to join the room or leave the party.");
+                }
             }
             return false;
         }
-        teleportPartyToRoom(members, roomId);
-        addPlayersToRoom(roomId, members);
+
+        // القائد: إذا البارتي في غرفة، ينقل الجميع لنفس الغرفة، وإلا ينقلهم لغرفة جديدة
+        int targetRoom = (partyRoom != null) ? partyRoom : roomId;
+        teleportPartyToRoom(members, targetRoom);
+        addPlayersToRoom(targetRoom, members);
         for (UUID uuid : members) {
             if (!uuid.equals(leader)) {
                 Player member = Bukkit.getPlayer(uuid);
@@ -147,7 +163,9 @@ public class RoomManager {
         }
         UUID leader = partySystem.getPartyLeader(playerUUID);
         List<UUID> members = partySystem.getPartyMembersOfPlayer(playerUUID);
+
         if (!playerUUID.equals(leader)) {
+            // العضو: طرده من البارتي ثم نقله للوبي
             partySystem.kickPlayerFromParty(playerUUID);
             Player player = Bukkit.getPlayer(playerUUID);
             if (player != null) {
@@ -159,6 +177,8 @@ public class RoomManager {
                 removePlayer(playerUUID);
             return;
         }
+
+        // القائد: ينقل كل الأعضاء معه للوبي بدون تفكيك البارتي
         for (UUID uuid : members) {
             Player member = Bukkit.getPlayer(uuid);
             if (member != null) {
@@ -176,6 +196,8 @@ public class RoomManager {
      * استدعِ هذه الدالة عند إضافة عضو جديد للبارتي.
      */
     public void syncPartyMemberWithLeaderRoom(PartySystemAPI partySystem, UUID newMemberUUID) {
+        if (partySystem == null)
+            return;
         UUID leader = partySystem.getPartyLeader(newMemberUUID);
         if (leader == null)
             return;
@@ -188,7 +210,7 @@ public class RoomManager {
         Location center = getRoomCenter(leaderRoom);
         if (center != null) {
             Location facingLocation = center.clone();
-            facingLocation.setYaw(0);
+            facingLocation.setYaw(180);
             Player player = Bukkit.getPlayer(newMemberUUID);
             if (player != null && player.isOnline()) {
                 player.teleport(facingLocation);

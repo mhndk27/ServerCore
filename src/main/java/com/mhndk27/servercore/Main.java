@@ -3,6 +3,7 @@ package com.mhndk27.servercore;
 import java.util.List;
 import java.util.UUID;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -10,22 +11,27 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import com.mhndk27.partysys.Party;
-import com.mhndk27.partysys.PartyManager;
+import com.mhndk27.partysys.PartySystem;
 
 public class Main extends JavaPlugin {
     private static Main instance;
     private RoomManager roomManager;
     private PartySystemAPI partyAPI;
-    private PartyManager partyManager;
 
     @Override
     public void onEnable() {
         instance = this;
         roomManager = new RoomManager();
-        partyManager = new PartyManager(); // أو PartyManager.getInstance() إذا كان Singleton
-        partyAPI = new PartySystemPartyManagerAPI(partyManager);
 
-        getLogger().info("PartyManager initialized and PartySystemAPI linked.");
+        // استخدم PartyManager من PartySystem عبر Bukkit
+        PartySystem partySystem = (PartySystem) Bukkit.getPluginManager().getPlugin("PartySystem");
+        if (partySystem != null && partySystem.isEnabled()) {
+            partyAPI = new PartySystemPartyManagerAPI(partySystem.getPartyManager());
+            getLogger().info("PartyManager initialized and PartySystemAPI linked.");
+        } else {
+            partyAPI = null;
+            getLogger().warning("PartySystem not found! Party features will be disabled.");
+        }
 
         TptCommand tptCommand = new TptCommand(this);
         getCommand("tpt").setExecutor(tptCommand);
@@ -56,9 +62,9 @@ public class Main extends JavaPlugin {
      * PartySystemAPI implementation for your PartyManager.
      */
     public static class PartySystemPartyManagerAPI implements PartySystemAPI {
-        private final PartyManager partyManager;
+        private final com.mhndk27.partysys.PartyManager partyManager;
 
-        public PartySystemPartyManagerAPI(PartyManager partyManager) {
+        public PartySystemPartyManagerAPI(com.mhndk27.partysys.PartyManager partyManager) {
             this.partyManager = partyManager;
         }
 
