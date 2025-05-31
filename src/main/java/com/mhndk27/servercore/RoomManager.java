@@ -131,20 +131,12 @@ public class RoomManager {
         // البحث عن أول غرفة مناسبة (فاضية أو تحتوي على أعضاء نفس البارتي)
         Integer roomId = findSuitableRoom(partySystem, playerUUID);
         if (roomId == null) {
-            Player player = getPlayer(playerUUID);
-            if (player != null) {
-                player.sendMessage("§c§l[Error] §r§cNo available rooms at the moment.");
-            }
             return false; // لا يتم النقل إذا لم توجد أي غرفة مناسبة
         }
 
         if (!inParty) {
             teleportPartyToRoom(Collections.singletonList(playerUUID), roomId);
             addPlayersToRoom(roomId, Collections.singletonList(playerUUID));
-            Player player = getPlayer(playerUUID);
-            if (player != null) {
-                player.sendMessage("§a§l[Success] §r§aYou have been teleported to Room #" + roomId + ".");
-            }
             return true;
         }
 
@@ -160,16 +152,6 @@ public class RoomManager {
                     facingLocation.setYaw(180);
                     teleportPlayerToLocation(playerUUID, facingLocation);
                     addPlayersToRoom(partyRoom, Collections.singletonList(playerUUID));
-                    Player player = getPlayer(playerUUID);
-                    if (player != null) {
-                        player.sendMessage("§b§l[Info] §r§bYou have joined your party in Room #" + partyRoom + ".");
-                    }
-                }
-            } else {
-                Player player = getPlayer(playerUUID);
-                if (player != null) {
-                    player.sendMessage(
-                            "§c§l[Error] §r§cWait for the party leader to join the room or leave the party.");
                 }
             }
             return false;
@@ -182,12 +164,6 @@ public class RoomManager {
             facingLocation.setYaw(180);
             teleportPlayersToLocation(members, facingLocation);
             addPlayersToRoom(targetRoom, members);
-            for (UUID uuid : members) {
-                Player member = getPlayer(uuid);
-                if (member != null && !uuid.equals(leader)) {
-                    member.sendMessage("§a§l[Success] §r§aThe party leader moved you to Room #" + targetRoom + ".");
-                }
-            }
         }
         return true;
     }
@@ -257,6 +233,27 @@ public class RoomManager {
             facingLocation.setYaw(180);
             teleportPlayerToLocation(newMemberUUID, facingLocation);
             addPlayersToRoom(leaderRoom, Collections.singletonList(newMemberUUID));
+        }
+    }
+
+    public void handlePartyDisband(UUID leaderUUID) {
+        Integer roomId = getPlayerRoom(leaderUUID);
+        if (roomId != null) {
+            clearRoom(roomId); // إزالة جميع أعضاء البارتي من الغرفة
+        }
+    }
+
+    public void handlePlayerLeaveParty(UUID playerUUID) {
+        Integer roomId = getPlayerRoom(playerUUID);
+        if (roomId != null) {
+            removePlayer(playerUUID); // إزالة اللاعب من الغرفة
+        }
+    }
+
+    public void handlePlayerKick(UUID playerUUID) {
+        Integer roomId = getPlayerRoom(playerUUID);
+        if (roomId != null) {
+            removePlayer(playerUUID); // إزالة اللاعب من الغرفة
         }
     }
 }
