@@ -18,6 +18,10 @@ import com.mhndk27.partysys.managers.PartyChatManager;
 import com.mhndk27.partysys.managers.PartyInviteManager;
 import com.mhndk27.partysys.utils.MessageUtils;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
+
 public class PartyCommand implements CommandExecutor, TabCompleter {
 
     private final PartyManager partyManager;
@@ -39,7 +43,7 @@ public class PartyCommand implements CommandExecutor, TabCompleter {
 
         if (args.length == 0) {
             player.sendMessage(
-                    MessageUtils.info("Usage: /party <create|invite|accept|deny|leave|kick|promote|disband|chat>"));
+                    MessageUtils.usage("/party <create|invite|accept|deny|leave|kick|promote|disband|chat>"));
             return true;
         }
 
@@ -91,9 +95,8 @@ public class PartyCommand implements CommandExecutor, TabCompleter {
 
                 PartyInviteManager inviteManager = PartyInviteManager.getInstance();
                 inviteManager.addInvite(target.getUniqueId(), playerUUID);
-                player.sendMessage(MessageUtils.success("Invite sent to " + targetName));
-                target.sendMessage(MessageUtils.info(player.getName()
-                        + " invited you to join their party. Use /party accept to join or /party deny to refuse."));
+                player.sendMessage(MessageUtils.success("Invite sent to " + targetName + " 🎉"));
+                target.sendMessage(MessageUtils.inviteMessage(player.getName()));
                 break;
 
             case "accept":
@@ -218,7 +221,9 @@ public class PartyCommand implements CommandExecutor, TabCompleter {
                 break;
 
             default:
-                player.sendMessage(MessageUtils.info("Unknown subcommand. Use /party help for commands."));
+                player.sendMessage(MessageUtils.info("Unknown subcommand. Use ")
+                        .append(Component.text("/party help", NamedTextColor.GREEN, TextDecoration.BOLD))
+                        .append(Component.text(" to see available commands.", NamedTextColor.WHITE)));
                 break;
         }
 
