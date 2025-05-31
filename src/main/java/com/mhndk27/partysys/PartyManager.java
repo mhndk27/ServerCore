@@ -17,8 +17,14 @@ import com.mhndk27.partysys.managers.PartyChatManager;
 import com.mhndk27.partysys.utils.MessageUtils;
 import com.mhndk27.partysys.utils.TeleportUtils;
 
+/**
+ * PartyManager
+ * مسؤول عن إدارة الأحزاب (إنشاء، حذف، إضافة/إزالة عضو، نقل القيادة، أدوات API)
+ * متكامل مع RoomManager في بلوقن servercore (لا تحذف أي تكامل).
+ */
 public class PartyManager {
 
+    // ===== Singleton =====
     private static PartyManager instance;
 
     public PartyManager() {
@@ -29,23 +35,26 @@ public class PartyManager {
         return instance;
     }
 
+    // ===== Party Data =====
     private final Map<UUID, Party> playerPartyMap = new HashMap<>();
     private final Set<Party> parties = new HashSet<>();
-
     private final Location lobbyLocation = new Location(Bukkit.getWorld("world"), 0, 16, 0);
 
-    // ===== Getters =====
+    // ===== Party Lookup =====
 
+    /** Get the party of a player */
     public Party getParty(UUID playerUUID) {
         return playerPartyMap.get(playerUUID);
     }
 
+    /** Is the player in a party? */
     public boolean isInParty(UUID playerUUID) {
         return playerPartyMap.containsKey(playerUUID);
     }
 
-    // ===== Party Creation and Management =====
+    // ===== Party CRUD =====
 
+    /** Create a new party */
     public Party createParty(UUID leaderUUID) {
         if (isInParty(leaderUUID))
             return null;
@@ -55,17 +64,18 @@ public class PartyManager {
         return party;
     }
 
+    /** Add all party members to the map */
     public void addParty(Party party) {
         for (UUID member : party.getMembers()) {
             playerPartyMap.put(member, party);
         }
     }
 
+    /** Remove a party and clean up everything */
     public void removeParty(Party party) {
         for (UUID member : party.getMembers()) {
             playerPartyMap.remove(member);
-            PartyChatManager.getInstance().disablePartyChat(member); // ⛔ نوقف الشات عن كل الأعضاء
-
+            PartyChatManager.getInstance().disablePartyChat(member);
             Player p = Bukkit.getPlayer(member);
             if (p != null) {
                 TeleportUtils.teleportToLocation(p, lobbyLocation);
@@ -76,8 +86,9 @@ public class PartyManager {
         parties.remove(party);
     }
 
-    // ===== Members Management =====
+    // ===== Party Member Management =====
 
+    /** Add a member to the party */
     public boolean addMember(UUID leaderUUID, UUID targetUUID) {
         Party party = getParty(leaderUUID);
         if (party == null || !party.isLeader(leaderUUID))
@@ -90,8 +101,8 @@ public class PartyManager {
         boolean added = party.addMember(targetUUID);
         if (added) {
             addParty(party);
-            // مزامنة العضو الجديد مع غرفة القائد إذا كان القائد في غرفة
-            org.bukkit.plugin.Plugin plugin = org.bukkit.Bukkit.getPluginManager().getPlugin("servercore");
+            // Integration with RoomManager in servercore
+            org.bukkit.plugin.Plugin plugin = Bukkit.getPluginManager().getPlugin("servercore");
             if (plugin != null && plugin.isEnabled()) {
                 com.mhndk27.servercore.Main main = (com.mhndk27.servercore.Main) plugin;
                 if (main.getPartyAPI() != null) {
@@ -102,6 +113,7 @@ public class PartyManager {
         return added;
     }
 
+    /** Remove a member from the party */
     public boolean removeMember(UUID leaderUUID, UUID targetUUID) {
         Party party = getParty(leaderUUID);
         if (party == null || !party.isLeader(leaderUUID))
@@ -112,8 +124,7 @@ public class PartyManager {
         boolean removed = party.removeMember(targetUUID);
         if (removed) {
             playerPartyMap.remove(targetUUID);
-            PartyChatManager.getInstance().disablePartyChat(targetUUID); // ⛔ نلغي الشات عن المطرود
-
+            PartyChatManager.getInstance().disablePartyChat(targetUUID);
             Player p = Bukkit.getPlayer(targetUUID);
             if (p != null) {
                 TeleportUtils.teleportToLocation(p, lobbyLocation);
@@ -123,6 +134,7 @@ public class PartyManager {
         return removed;
     }
 
+    /** Player leaves the party */
     public boolean leaveParty(UUID playerUUID) {
         Party party = getParty(playerUUID);
         if (party == null)
@@ -131,7 +143,7 @@ public class PartyManager {
         boolean isLeader = party.isLeader(playerUUID);
         party.removeMember(playerUUID);
         playerPartyMap.remove(playerUUID);
-        PartyChatManager.getInstance().disablePartyChat(playerUUID); // ⛔ نلغي الشات عن اللي طلع
+        PartyChatManager.getInstance().disablePartyChat(playerUUID);
 
         Player player = Bukkit.getPlayer(playerUUID);
         if (player != null) {
@@ -153,6 +165,7 @@ public class PartyManager {
         return true;
     }
 
+    /** Transfer party leadership */
     public boolean transferLeadership(UUID currentLeaderUUID, UUID newLeaderUUID) {
         Party party = getParty(currentLeaderUUID);
         if (party == null || !party.isLeader(currentLeaderUUID))
@@ -161,7 +174,6 @@ public class PartyManager {
             return false;
 
         party.setLeader(newLeaderUUID);
-
         Player newLeader = Bukkit.getPlayer(newLeaderUUID);
         if (newLeader != null) {
             newLeader.sendMessage(MessageUtils.success("You have been promoted to party leader."));
@@ -169,81 +181,74 @@ public class PartyManager {
         return true;
     }
 
+    // ===== API Utilities =====
+
+    /** Is the player in any party? */
     public boolean isInAnyParty(UUID playerUUID) {
         return isInParty(playerUUID);
     }
 
-    // ===== Player Info Helpers =====
-
+    /** Get player name from UUID */
     public String getPlayerName(UUID playerUUID) {
         Player player = Bukkit.getPlayer(playerUUID);
         return (player != null) ? player.getName() : null;
     }
 
+    /** Get UUID from player name */
     public UUID getUUIDFromName(String name) {
         Player player = Bukkit.getPlayerExact(name);
         return (player != null) ? player.getUniqueId() : null;
     }
 
-    // هل اللاعب قائد بارتي؟
+    /** Is the player the party leader? */
     public boolean isLeader(UUID uuid) {
         Party party = getParty(uuid);
         return party != null && party.getLeaderUUID().equals(uuid);
     }
 
-    // جلب كل أعضاء البارتي
+    /** Get all party members */
     public List<UUID> getPartyMembers(UUID uuid) {
         Party party = getParty(uuid);
         return party != null ? new ArrayList<>(party.getMembers()) : Collections.emptyList();
     }
 
-    // جلب كائن البارتي
+    /** Get party by leader */
     public Party getPartyByLeader(UUID leader) {
         Party party = getParty(leader);
         return party != null && party.getLeaderUUID().equals(leader) ? party : null;
     }
 
-    // هل اللاعب في بارتي؟
-    public boolean isPlayerInParty(UUID playerUUID) {
-        return isInParty(playerUUID);
-    }
-
-    // جلب قائد البارتي للاعب
+    /** Get party leader for a player */
     public UUID getPartyLeader(UUID playerUUID) {
         Party party = getParty(playerUUID);
         return (party != null) ? party.getLeaderUUID() : null;
     }
 
-    // جلب أعضاء البارتي للاعب
+    /** Get party members for a player */
     public List<UUID> getPartyMembersOfPlayer(UUID playerUUID) {
         Party party = getParty(playerUUID);
         return (party != null) ? new ArrayList<>(party.getMembers()) : Collections.emptyList();
     }
 
-    // جلب كائن البارتي للاعب (للاستخدام المتقدم)
+    /** Get party object for a player */
     public Party getPlayerParty(UUID playerUUID) {
         return getParty(playerUUID);
     }
 
-    // جلب عدد أعضاء البارتي
+    /** Get party size for a player */
     public int getPartySize(UUID playerUUID) {
         Party party = getParty(playerUUID);
         return (party != null) ? party.getMembers().size() : 0;
     }
 
-    /**
-     * طرد لاعب من البارتي الخاص به (يمكن استدعاؤها من أي بلوقن خارجي)
-     * 
-     * @param targetUUID UUID اللاعب المراد طرده
-     * @return true إذا تم الطرد بنجاح، false إذا لم يكن في بارتي
-     */
+    /** Kick a player from their party (external API) */
     public boolean kickPlayerFromParty(UUID targetUUID) {
         Party party = getParty(targetUUID);
         if (party == null)
             return false;
         UUID leaderUUID = party.getLeaderUUID();
         if (leaderUUID.equals(targetUUID)) {
-            // لا يمكن طرد القائد بهذه الدالة
+            // Cannot kick the leader with this method
             return false;
         }
         return removeMember(leaderUUID, targetUUID);

@@ -8,7 +8,5 @@ com\mhndk27\partysys\commands\PartyTabCompleter.class
 com\mhndk27\partysys\listeners\PlayerQuitListener.class
 com\mhndk27\partysys\managers\PartyInviteManager.class
 com\mhndk27\partysys\Party.class
-com\mhndk27\partysys\listeners\PlayerJoinListener.class
 com\mhndk27\partysys\PartyManager.class
-com\mhndk27\partysys\PlayerPartyData.class
 com\mhndk27\partysys\utils\MessageUtils.class

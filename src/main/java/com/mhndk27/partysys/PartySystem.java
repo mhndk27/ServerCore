@@ -5,7 +5,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 import com.mhndk27.partysys.commands.PartyCommand;
 import com.mhndk27.partysys.commands.PartyTabCompleter;
 import com.mhndk27.partysys.listeners.PartyChatListener;
-import com.mhndk27.partysys.listeners.PlayerJoinListener;
 import com.mhndk27.partysys.listeners.PlayerQuitListener;
 import com.mhndk27.partysys.managers.PartyChatManager;
 import com.mhndk27.partysys.managers.PartyInviteManager;
@@ -29,7 +28,6 @@ public class PartySystem extends JavaPlugin {
         // تسجيل المستمعين للأحداث
         getServer().getPluginManager().registerEvents(new PartyChatListener(partyManager), this);
         getServer().getPluginManager().registerEvents(new PlayerQuitListener(partyManager), this);
-        getServer().getPluginManager().registerEvents(new PlayerJoinListener(partyManager), this);
     }
 
     @Override
