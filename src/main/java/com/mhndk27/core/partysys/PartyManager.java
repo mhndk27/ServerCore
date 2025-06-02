@@ -12,6 +12,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import com.mhndk27.core.partysys.managers.PartyChatManager;
+import com.mhndk27.core.rooms.RoomManager; // Import RoomManager
 import com.mhndk27.core.utils.MessageUtils; // Update import to general utils
 import com.mhndk27.core.utils.TeleportUtils; // Use general TeleportUtils
 
@@ -24,18 +25,20 @@ public class PartyManager {
     // ===== Singleton =====
     private static PartyManager instance;
 
-    public PartyManager() {
+    // ===== Party Data =====
+    private final Map<UUID, Party> playerPartyMap = new HashMap<>();
+    private final Set<Party> parties = new HashSet<>();
+    private final Location lobbyLocation = new Location(Bukkit.getWorld("world"), 0.5, 16, 0.5);
+    private final RoomManager roomManager; // Add RoomManager as a dependency
+
+    public PartyManager(RoomManager roomManager) {
+        this.roomManager = roomManager; // Ensure RoomManager is properly initialized
         instance = this;
     }
 
     public static PartyManager getInstance() {
         return instance;
     }
-
-    // ===== Party Data =====
-    private final Map<UUID, Party> playerPartyMap = new HashMap<>();
-    private final Set<Party> parties = new HashSet<>();
-    private final Location lobbyLocation = new Location(Bukkit.getWorld("world"), 0.5, 16, 0.5);
 
     // ===== Party Lookup =====
 
@@ -114,10 +117,12 @@ public class PartyManager {
         if (removed) {
             playerPartyMap.remove(targetUUID);
             PartyChatManager.getInstance().disablePartyChat(targetUUID);
-            Player p = Bukkit.getPlayer(targetUUID);
-            if (p != null) {
-                TeleportUtils.teleportToLocation(p, lobbyLocation);
-                p.sendMessage(MessageUtils
+            roomManager.releaseRoomForMember(targetUUID); // Ensure RoomManager is used correctly
+
+            Player player = Bukkit.getPlayer(targetUUID);
+            if (player != null) {
+                TeleportUtils.teleportToLocation(player, lobbyLocation); // Fix teleport logic
+                player.sendMessage(MessageUtils
                         .info("You have been removed from the party and teleported to the lobby."));
             }
         }
@@ -134,6 +139,8 @@ public class PartyManager {
         party.removeMember(playerUUID);
         playerPartyMap.remove(playerUUID);
         PartyChatManager.getInstance().disablePartyChat(playerUUID);
+
+        roomManager.releaseRoomForMember(playerUUID); // Release room occupancy
 
         Player player = Bukkit.getPlayer(playerUUID);
         if (player != null) {

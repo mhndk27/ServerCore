@@ -20,8 +20,8 @@ public class Main extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        partyManager = new PartyManager();
         roomManager = new RoomManager();
+        partyManager = new PartyManager(roomManager); // Pass RoomManager to PartyManager
 
         // Pass RoomManager to PartyInviteManager
         new PartyInviteManager(partyManager, roomManager);
@@ -34,8 +34,8 @@ public class Main extends JavaPlugin {
         getCommand("tpt").setTabCompleter(new TeleportTabCompleter()); // Register tab completer
 
         // تسجيل المستمعين للأحداث
-        getServer().getPluginManager().registerEvents(new PartyChatListener(partyManager), this);
-        getServer().getPluginManager().registerEvents(new PlayerQuitListener(partyManager), this);
+        getServer().getPluginManager().registerEvents(new PartyChatListener(), this);
+        getServer().getPluginManager().registerEvents(new PlayerQuitListener(partyManager, roomManager), this);
         getServer().getPluginManager().registerEvents(new PlayerJoinListener(), this); // Register
                                                                                        // PlayerJoinListener
     }

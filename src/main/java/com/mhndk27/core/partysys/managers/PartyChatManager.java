@@ -68,7 +68,6 @@ public class PartyChatManager {
             return;
         }
 
-        // Ensure the method name matches the updated MessageUtils method
         var formattedMessage = MessageUtils.chatMessage(sender.getName(), message);
 
         for (UUID memberUUID : party.getMembers()) {

@@ -4,15 +4,12 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
-import com.mhndk27.core.partysys.PartyManager;
 import com.mhndk27.core.partysys.managers.PartyChatManager;
 
 public class PartyChatListener implements Listener {
 
-    private final PartyManager partyManager;
-
-    public PartyChatListener(PartyManager partyManager) {
-        this.partyManager = partyManager;
+    public PartyChatListener() {
+        // Constructor remains empty as no fields are needed
     }
 
     @EventHandler
@@ -21,19 +18,10 @@ public class PartyChatListener implements Listener {
         Player sender = event.getPlayer();
         boolean isEnabled = PartyChatManager.getInstance().isPartyChatEnabled(sender.getUniqueId());
 
-        // ✅ إذا مفعل الشات لكن مو في بارتي → نلغيه مباشرة
-        if (isEnabled && !partyManager.isInParty(sender.getUniqueId())) {
-            PartyChatManager.getInstance().disablePartyChat(sender.getUniqueId()); // نلغي التفعيل
-            sender.sendMessage("§cYou are no longer in a party. Party chat has been disabled.");
-            return;
+        if (isEnabled) {
+            event.setCancelled(true); // Cancel public chat
+            String message = event.getMessage();
+            PartyChatManager.getInstance().sendPartyMessage(sender, message);
         }
-
-        // ✅ إذا الشات مو مفعل ما نسوي شيء
-        if (!isEnabled)
-            return;
-
-        event.setCancelled(true); // نوقف الشات العام
-        String message = event.getMessage();
-        PartyChatManager.getInstance().sendPartyMessage(sender, message);
     }
 }
