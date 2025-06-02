@@ -1,5 +1,5 @@
 name: PartySystem
-main: com.mhndk27.partysys.PartySystem
+main: com.mhndk27.core.Main
 version: 1.0
 api-version: 1.20
 commands:
@@ -7,7 +7,14 @@ commands:
     description: Manage parties
     usage: /party <create|invite|kick|leave|promote|disband|chat|accept|deny>
     permission: partysys.use
+  tpt:
+    description: Teleport to lobby or waiting rooms
+    usage: /tpt <lobby|zombie_shooter>
+    permission: tpt.use
 permissions:
   partysys.use:
     description: Allows using party commands
+    default: true
+  tpt.use:
+    description: Allows using teleport commands
     default: true
