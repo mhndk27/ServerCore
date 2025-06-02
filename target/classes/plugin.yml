@@ -1,4 +1,5 @@
-name: PartySystem
+name: ServerCore
+description: بلوقن منغولي
 main: com.mhndk27.core.Main
 version: 1.0
 api-version: 1.20

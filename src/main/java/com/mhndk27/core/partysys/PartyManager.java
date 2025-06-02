@@ -100,14 +100,6 @@ public class PartyManager {
         boolean added = party.addMember(targetUUID);
         if (added) {
             addParty(party);
-            // Integration with RoomManager in servercore
-            org.bukkit.plugin.Plugin plugin = Bukkit.getPluginManager().getPlugin("servercore");
-            if (plugin != null && plugin.isEnabled()) {
-                com.mhndk27.servercore.Main main = (com.mhndk27.servercore.Main) plugin;
-                if (main.getPartyAPI() != null) {
-                    main.getRoomManager().syncPartyMemberWithLeaderRoom(main.getPartyAPI(), targetUUID);
-                }
-            }
         }
         return added;
     }

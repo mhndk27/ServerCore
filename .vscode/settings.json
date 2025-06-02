@@ -1,9 +1,9 @@
 {
-  "java.home": "C:/Program Files/Java/jdk-17", // عيّن مسار JDK 17 عندك
+  "java.home": "C:/Program Files/Java/jdk-21", 
   "java.configuration.runtimes": [
     {
-      "name": "JavaSE-17",
-      "path": "C:/Program Files/Java/jdk-17",
+      "name": "JavaSE-21",
+      "path": "C:/Program Files/Java/jdk-21",
       "default": true
     }
   ],

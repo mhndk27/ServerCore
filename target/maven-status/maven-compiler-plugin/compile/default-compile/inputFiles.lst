@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 C:\Users\mohan\Downloads\THENETHER\ServerCore\src\main\java\com\mhndk27\core\Main.java
 C:\Users\mohan\Downloads\THENETHER\ServerCore\src\main\java\com\mhndk27\core\partysys\commands\PartyCommand.java
 C:\Users\mohan\Downloads\THENETHER\ServerCore\src\main\java\com\mhndk27\core\partysys\commands\PartyTabCompleter.java
@@ -13,3 +14,9 @@ C:\Users\mohan\Downloads\THENETHER\ServerCore\src\main\java\com\mhndk27\core\par
 C:\Users\mohan\Downloads\THENETHER\ServerCore\src\main\java\com\mhndk27\core\rooms\commands\TeleportCommand.java
 C:\Users\mohan\Downloads\THENETHER\ServerCore\src\main\java\com\mhndk27\core\rooms\Room.java
 C:\Users\mohan\Downloads\THENETHER\ServerCore\src\main\java\com\mhndk27\core\rooms\RoomManager.java
+=======
+C:\Users\mohan\Downloads\THENETHER\servercore\src\main\java\com\mhndk27\servercore\RoomManager.java
+C:\Users\mohan\Downloads\THENETHER\servercore\src\main\java\com\mhndk27\servercore\Main.java
+C:\Users\mohan\Downloads\THENETHER\servercore\src\main\java\com\mhndk27\servercore\PartySystemAPI.java
+C:\Users\mohan\Downloads\THENETHER\servercore\src\main\java\com\mhndk27\servercore\TptCommand.java
+>>>>>>> 6fa275c36776f486cacfbefc2196f60061c89ac0
