@@ -53,21 +53,17 @@ public class TeleportCommand implements CommandExecutor {
                 UUID leaderUUID = party.getLeaderUUID();
 
                 if (party.isLeader(playerUUID)) {
-                    boolean reserved = roomManager.reserveRoom(playerUUID);
+                    boolean reserved =
+                            roomManager.reserveRoomForParty(playerUUID, party.getMembers());
                     if (!reserved) {
                         player.sendMessage("No available rooms at the moment.");
                         return true;
                     }
-                    room = roomManager.getAvailableRoom();
+                    room = roomManager.getRoomByPlayer(playerUUID);
                 } else {
-                    for (Room r : roomManager.getRooms().values()) { // Use the newly added
-                                                                     // getRooms() method
-                        if (r.isOccupied() && r.getPartyId().equals(leaderUUID)) {
-                            room = r;
-                            break;
-                        }
-                    }
-                    if (room == null) {
+                    room = roomManager.getRoomByPlayer(leaderUUID);
+                    if (room == null || !room.isOccupied()
+                            || !room.getOccupants().contains(playerUUID)) {
                         player.sendMessage("Wait for your party leader to teleport.");
                         return true;
                     }
@@ -78,7 +74,7 @@ public class TeleportCommand implements CommandExecutor {
                     player.sendMessage("No available rooms at the moment.");
                     return true;
                 }
-                room = roomManager.getAvailableRoom();
+                room = roomManager.getRoomByPlayer(playerUUID);
             }
 
             if (room == null) {
@@ -89,9 +85,20 @@ public class TeleportCommand implements CommandExecutor {
             int[] coords = room.getCoordinates();
             Location roomLocation =
                     new Location(Bukkit.getWorld("world"), coords[0], coords[1], coords[2]);
-            TeleportUtils.teleportToLocation(player, roomLocation); // Use TeleportUtils for room
-                                                                    // teleportation
-            player.sendMessage("Teleported to the Zombie Shooter waiting room.");
+
+            if (partyManager.isInParty(playerUUID)) {
+                Party party = partyManager.getParty(playerUUID);
+                for (UUID memberUUID : party.getMembers()) {
+                    Player member = Bukkit.getPlayer(memberUUID);
+                    if (member != null) {
+                        member.teleport(roomLocation);
+                        member.sendMessage("Teleported to the Zombie Shooter waiting room.");
+                    }
+                }
+            } else {
+                player.teleport(roomLocation);
+                player.sendMessage("Teleported to the Zombie Shooter waiting room.");
+            }
             return true;
         }
 

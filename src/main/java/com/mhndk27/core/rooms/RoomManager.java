@@ -12,7 +12,7 @@ public class RoomManager {
 
     private void initializeRooms() {
         for (int i = 0; i < 10; i++) {
-            rooms.put(i, new Room(118, 82, 480 + (100 * i))); // Updated coordinates
+            rooms.put(i, new Room(118, 85, 480 + (100 * i))); // Raised Y-coordinate by 3 blocks
         }
     }
 
@@ -29,6 +29,18 @@ public class RoomManager {
         Room room = getAvailableRoom();
         if (room != null) {
             room.setOccupied(true, playerId); // Allow reservation for individual players
+            return true;
+        }
+        return false;
+    }
+
+    public boolean reserveRoomForParty(UUID leaderId, Iterable<UUID> partyMembers) {
+        Room room = getAvailableRoom();
+        if (room != null) {
+            room.setOccupied(true, leaderId); // Reserve room for the leader
+            for (UUID memberId : partyMembers) {
+                room.addOccupant(memberId); // Add all party members as occupants
+            }
             return true;
         }
         return false;
