@@ -10,6 +10,7 @@ import com.mhndk27.core.partysys.managers.PartyChatManager;
 import com.mhndk27.core.partysys.managers.PartyInviteManager;
 import com.mhndk27.core.rooms.RoomManager;
 import com.mhndk27.core.rooms.commands.TeleportCommand;
+import com.mhndk27.core.rooms.commands.TeleportTabCompleter;
 
 public class Main extends JavaPlugin {
 
@@ -21,14 +22,15 @@ public class Main extends JavaPlugin {
         partyManager = new PartyManager();
         roomManager = new RoomManager();
 
-        // تسجيل مدراء جدد
-        new PartyInviteManager(partyManager);
+        // Pass RoomManager to PartyInviteManager
+        new PartyInviteManager(partyManager, roomManager);
         new PartyChatManager(partyManager);
 
         // تسجيل الأمر مع التنفيذ والتنقيح (TabCompleter)
         getCommand("party").setExecutor(new PartyCommand(partyManager));
         getCommand("party").setTabCompleter(new PartyTabCompleter(partyManager));
         getCommand("tpt").setExecutor(new TeleportCommand(roomManager, partyManager));
+        getCommand("tpt").setTabCompleter(new TeleportTabCompleter()); // Register tab completer
 
         // تسجيل المستمعين للأحداث
         getServer().getPluginManager().registerEvents(new PartyChatListener(partyManager), this);

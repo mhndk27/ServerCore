@@ -7,9 +7,11 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import com.mhndk27.core.partysys.Party;
 import com.mhndk27.core.partysys.PartyManager;
 import com.mhndk27.core.rooms.Room;
 import com.mhndk27.core.rooms.RoomManager;
+import com.mhndk27.core.utils.TeleportUtils; // Use general TeleportUtils
 
 public class TeleportCommand implements CommandExecutor {
     private final RoomManager roomManager;
@@ -37,41 +39,59 @@ public class TeleportCommand implements CommandExecutor {
         String destination = args[0].toLowerCase();
 
         if (destination.equals("lobby")) {
-            Location lobbyLocation = new Location(Bukkit.getWorld("world"), 0.5, 16, 0.5);
-            player.teleport(lobbyLocation);
+            TeleportUtils.teleportToLobby(player); // Use TeleportUtils for lobby teleportation
             player.sendMessage("Teleported to the lobby.");
             roomManager.releaseRoomForMember(playerUUID); // تحرير الغرفة إذا عاد اللاعب إلى اللوبي
             return true;
         }
 
         if (destination.equals("zombie_shooter")) {
-            if (partyManager.isLeader(playerUUID)) {
-                UUID partyId = partyManager.getParty(playerUUID).getLeaderUUID();
-                boolean reserved = roomManager.reserveRoom(partyId);
+            Room room = null;
+
+            if (partyManager.isInParty(playerUUID)) {
+                Party party = partyManager.getParty(playerUUID);
+                UUID leaderUUID = party.getLeaderUUID();
+
+                if (party.isLeader(playerUUID)) {
+                    boolean reserved = roomManager.reserveRoom(playerUUID);
+                    if (!reserved) {
+                        player.sendMessage("No available rooms at the moment.");
+                        return true;
+                    }
+                    room = roomManager.getAvailableRoom();
+                } else {
+                    for (Room r : roomManager.getRooms().values()) { // Use the newly added
+                                                                     // getRooms() method
+                        if (r.isOccupied() && r.getPartyId().equals(leaderUUID)) {
+                            room = r;
+                            break;
+                        }
+                    }
+                    if (room == null) {
+                        player.sendMessage("Wait for your party leader to teleport.");
+                        return true;
+                    }
+                }
+            } else {
+                boolean reserved = roomManager.reserveRoom(playerUUID);
                 if (!reserved) {
                     player.sendMessage("No available rooms at the moment.");
                     return true;
                 }
-
-                Room room = roomManager.getAvailableRoom();
-                if (room == null) {
-                    player.sendMessage("No available rooms at the moment.");
-                    return true;
-                }
-
-                int[] coords = room.getCoordinates();
-                Location roomLocation =
-                        new Location(Bukkit.getWorld("world"), coords[0], coords[1], coords[2]);
-                for (UUID memberUUID : partyManager.getPartyMembers(playerUUID)) {
-                    Player member = Bukkit.getPlayer(memberUUID);
-                    if (member != null) {
-                        member.teleport(roomLocation);
-                        member.sendMessage("Teleported to the Zombie Shooter waiting room.");
-                    }
-                }
-            } else {
-                player.sendMessage("Wait for your party leader to teleport.");
+                room = roomManager.getAvailableRoom();
             }
+
+            if (room == null) {
+                player.sendMessage("No available rooms at the moment.");
+                return true;
+            }
+
+            int[] coords = room.getCoordinates();
+            Location roomLocation =
+                    new Location(Bukkit.getWorld("world"), coords[0], coords[1], coords[2]);
+            TeleportUtils.teleportToLocation(player, roomLocation); // Use TeleportUtils for room
+                                                                    // teleportation
+            player.sendMessage("Teleported to the Zombie Shooter waiting room.");
             return true;
         }
 

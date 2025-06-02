@@ -3,12 +3,11 @@ package com.mhndk27.core.partysys.managers;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
-
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import com.mhndk27.core.partysys.Party;
 import com.mhndk27.core.partysys.PartyManager;
-import com.mhndk27.core.partysys.utils.MessageUtils;
+import com.mhndk27.core.utils.MessageUtils; // Update import to general utils
 
 public class PartyChatManager {
     private static PartyChatManager instance;
@@ -35,9 +34,19 @@ public class PartyChatManager {
 
         if (partyChatEnabled.contains(playerUUID)) {
             partyChatEnabled.remove(playerUUID);
+            Player player = Bukkit.getPlayer(playerUUID);
+            if (player != null) {
+                player.sendMessage(
+                        MessageUtils.info("Party chat disabled. Public chat is now visible."));
+            }
             return false;
         } else {
             partyChatEnabled.add(playerUUID);
+            Player player = Bukkit.getPlayer(playerUUID);
+            if (player != null) {
+                player.sendMessage(
+                        MessageUtils.success("Party chat enabled. Public chat is now hidden."));
+            }
             return true;
         }
     }
@@ -59,7 +68,8 @@ public class PartyChatManager {
             return;
         }
 
-        var formattedMessage = MessageUtils.partyChat(sender.getName(), message);
+        // Ensure the method name matches the updated MessageUtils method
+        var formattedMessage = MessageUtils.chatMessage(sender.getName(), message);
 
         for (UUID memberUUID : party.getMembers()) {
             Player member = Bukkit.getPlayer(memberUUID);

@@ -1,4 +1,4 @@
-package com.mhndk27.core.partysys.utils;
+package com.mhndk27.core.utils;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;

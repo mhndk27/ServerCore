@@ -3,20 +3,25 @@ package com.mhndk27.core.partysys.managers;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import com.mhndk27.core.partysys.Party;
 import com.mhndk27.core.partysys.PartyManager;
-import com.mhndk27.core.partysys.utils.MessageUtils;
+import com.mhndk27.core.rooms.Room;
+import com.mhndk27.core.rooms.RoomManager;
+import com.mhndk27.core.utils.MessageUtils; // Update import to general utils
+import com.mhndk27.core.utils.TeleportUtils;
 
 public class PartyInviteManager {
     private static PartyInviteManager instance;
     private final PartyManager partyManager;
+    private final RoomManager roomManager; // Add RoomManager as a dependency
     private final Map<UUID, InviteData> pendingInvites = new ConcurrentHashMap<>();
 
-    public PartyInviteManager(PartyManager partyManager) {
+    public PartyInviteManager(PartyManager partyManager, RoomManager roomManager) {
         this.partyManager = partyManager;
+        this.roomManager = roomManager; // Initialize RoomManager
         instance = this;
     }
 
@@ -90,11 +95,23 @@ public class PartyInviteManager {
             Player player = Bukkit.getPlayer(targetUUID);
             if (player != null) {
                 player.sendMessage(MessageUtils.success("You joined the party!"));
+
+                // Use the injected RoomManager instance to get the leader's room
+                Room leaderRoom = roomManager.getRoomByPlayer(invite.getLeaderUUID());
+                if (leaderRoom != null) {
+                    int[] coords = leaderRoom.getCoordinates();
+                    Location roomLocation =
+                            new Location(Bukkit.getWorld("world"), coords[0], coords[1], coords[2]);
+                    TeleportUtils.teleportToLocation(player, roomLocation);
+                    player.sendMessage(MessageUtils
+                            .info("You have been teleported to the leader's waiting room."));
+                }
             }
 
             Player leader = Bukkit.getPlayer(invite.getLeaderUUID());
             if (leader != null) {
-                leader.sendMessage(MessageUtils.info(partyManager.getPlayerName(targetUUID) + " joined the party."));
+                leader.sendMessage(MessageUtils
+                        .info(partyManager.getPlayerName(targetUUID) + " joined the party."));
             }
 
             return true;
@@ -116,7 +133,8 @@ public class PartyInviteManager {
 
         Player leader = Bukkit.getPlayer(invite.getLeaderUUID());
         if (leader != null) {
-            leader.sendMessage(MessageUtils.info(partyManager.getPlayerName(targetUUID) + " denied the party invite."));
+            leader.sendMessage(MessageUtils
+                    .info(partyManager.getPlayerName(targetUUID) + " denied the party invite."));
         }
         return true;
     }

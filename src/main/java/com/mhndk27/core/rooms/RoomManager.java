@@ -12,7 +12,7 @@ public class RoomManager {
 
     private void initializeRooms() {
         for (int i = 0; i < 10; i++) {
-            rooms.put(i, new Room(137, 82, 490 + (100 * i)));
+            rooms.put(i, new Room(118, 82, 480 + (100 * i))); // Updated coordinates
         }
     }
 
@@ -25,18 +25,18 @@ public class RoomManager {
         return null;
     }
 
-    public boolean reserveRoom(UUID partyId) {
+    public boolean reserveRoom(UUID playerId) {
         Room room = getAvailableRoom();
         if (room != null) {
-            room.setOccupied(true, partyId);
+            room.setOccupied(true, playerId); // Allow reservation for individual players
             return true;
         }
         return false;
     }
 
-    public void releaseRoom(UUID partyId) {
+    public void releaseRoom(UUID playerId) {
         for (Room room : rooms.values()) {
-            if (room.getPartyId() != null && room.getPartyId().equals(partyId)) {
+            if (room.getPartyId() != null && room.getPartyId().equals(playerId)) {
                 room.setOccupied(false, null);
                 break;
             }
@@ -50,5 +50,18 @@ public class RoomManager {
                 break;
             }
         }
+    }
+
+    public HashMap<Integer, Room> getRooms() {
+        return rooms; // Expose the rooms map for external access
+    }
+
+    public Room getRoomByPlayer(UUID playerId) {
+        for (Room room : rooms.values()) {
+            if (room.isOccupied() && room.getPartyId().equals(playerId)) {
+                return room;
+            }
+        }
+        return null;
     }
 }

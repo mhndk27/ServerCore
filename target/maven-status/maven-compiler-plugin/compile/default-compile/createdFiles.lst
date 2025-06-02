@@ -1,24 +1,16 @@
-<<<<<<< HEAD
 com\mhndk27\core\partysys\listeners\PartyChatListener.class
 com\mhndk27\core\partysys\managers\PartyInviteManager$InviteData.class
 com\mhndk27\core\Main.class
-com\mhndk27\core\partysys\utils\MessageUtils.class
+com\mhndk27\core\utils\MessageUtils.class
 com\mhndk27\core\partysys\PartyManager.class
 com\mhndk27\core\partysys\commands\PartyTabCompleter.class
 com\mhndk27\core\partysys\managers\PartyInviteManager.class
 com\mhndk27\core\partysys\managers\PartyChatManager.class
+com\mhndk27\core\utils\TeleportUtils.class
 com\mhndk27\core\partysys\commands\PartyCommand.class
 com\mhndk27\core\partysys\Party.class
 com\mhndk27\core\rooms\Room.class
-com\mhndk27\core\partysys\utils\TeleportUtils.class
+com\mhndk27\core\rooms\commands\TeleportTabCompleter.class
 com\mhndk27\core\rooms\commands\TeleportCommand.class
 com\mhndk27\core\partysys\listeners\PlayerQuitListener.class
 com\mhndk27\core\rooms\RoomManager.class
-=======
-com\mhndk27\servercore\RoomManager.class
-com\mhndk27\servercore\Main$1.class
-com\mhndk27\servercore\PartySystemAPI.class
-com\mhndk27\servercore\TptCommand.class
-com\mhndk27\servercore\Main$PartySystemPartyManagerAPI.class
-com\mhndk27\servercore\Main.class
->>>>>>> 6fa275c36776f486cacfbefc2196f60061c89ac0
