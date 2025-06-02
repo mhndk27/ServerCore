@@ -46,7 +46,8 @@ public class TeleportCommand implements CommandExecutor {
         }
 
         if (destination.equals("zombie_shooter")) {
-            if (roomManager.isPlayerInRoom(playerUUID)) {
+            Room currentRoom = roomManager.getRoomByPlayer(playerUUID);
+            if (currentRoom != null) { // Check if the player is already occupying a room
                 player.sendMessage("You are already in a waiting room.");
                 return true; // Prevent redundant teleportation
             }

@@ -96,9 +96,11 @@ public class PartyInviteManager {
             if (player != null) {
                 player.sendMessage(MessageUtils.success("You joined the party!"));
 
-                // Use the injected RoomManager instance to get the leader's room
+                // نقل العضو الجديد تلقائيًا إلى الغرفة المحجوزة للقائد إذا كان داخل غرفة انتظار
                 Room leaderRoom = roomManager.getRoomByPlayer(invite.getLeaderUUID());
                 if (leaderRoom != null) {
+                    roomManager.transferToNewRoom(targetUUID, leaderRoom); // Release current room
+                                                                           // and transfer
                     int[] coords = leaderRoom.getCoordinates();
                     Location roomLocation =
                             new Location(Bukkit.getWorld("world"), coords[0], coords[1], coords[2]);

@@ -67,6 +67,11 @@ public class RoomManager {
         }
     }
 
+    public void transferToNewRoom(UUID playerId, Room newRoom) {
+        releaseRoomForMember(playerId); // Release the player's current room
+        newRoom.addOccupant(playerId); // Add the player to the new room
+    }
+
     public HashMap<Integer, Room> getRooms() {
         return rooms; // Expose the rooms map for external access
     }
