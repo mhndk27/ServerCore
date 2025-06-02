@@ -1,6 +1,7 @@
 package com.mhndk27.core;
 
 import org.bukkit.plugin.java.JavaPlugin;
+import com.mhndk27.core.listeners.PlayerJoinListener;
 import com.mhndk27.core.partysys.PartyManager;
 import com.mhndk27.core.partysys.commands.PartyCommand;
 import com.mhndk27.core.partysys.commands.PartyTabCompleter;
@@ -35,6 +36,8 @@ public class Main extends JavaPlugin {
         // تسجيل المستمعين للأحداث
         getServer().getPluginManager().registerEvents(new PartyChatListener(partyManager), this);
         getServer().getPluginManager().registerEvents(new PlayerQuitListener(partyManager), this);
+        getServer().getPluginManager().registerEvents(new PlayerJoinListener(), this); // Register
+                                                                                       // PlayerJoinListener
     }
 
     @Override

@@ -1,6 +1,7 @@
 com\mhndk27\core\partysys\listeners\PartyChatListener.class
 com\mhndk27\core\partysys\managers\PartyInviteManager$InviteData.class
 com\mhndk27\core\Main.class
+com\mhndk27\core\listeners\PlayerJoinListener.class
 com\mhndk27\core\utils\MessageUtils.class
 com\mhndk27\core\partysys\PartyManager.class
 com\mhndk27\core\partysys\commands\PartyTabCompleter.class
