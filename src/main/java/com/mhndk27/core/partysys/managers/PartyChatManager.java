@@ -36,16 +36,16 @@ public class PartyChatManager {
             partyChatEnabled.remove(playerUUID);
             Player player = Bukkit.getPlayer(playerUUID);
             if (player != null) {
-                player.sendMessage(
-                        MessageUtils.info("Party chat disabled. Public chat is now visible."));
+                player.sendMessage(MessageUtils
+                        .info("Party chat disabled. All messages will now be visible."));
             }
             return false;
         } else {
             partyChatEnabled.add(playerUUID);
             Player player = Bukkit.getPlayer(playerUUID);
             if (player != null) {
-                player.sendMessage(
-                        MessageUtils.success("Party chat enabled. Public chat is now hidden."));
+                player.sendMessage(MessageUtils
+                        .success("Party chat enabled. You will only see party messages."));
             }
             return true;
         }
