@@ -103,11 +103,21 @@ public class PartyManager {
         if (added) {
             addParty(party);
 
-            // Ensure all reservations are cleared before moving to the leader's room
+            // Clear all previous room reservations for the target player
             roomManager.releaseRoomForMember(targetUUID);
+
+            // Get leader's room and add the new member
             Room leaderRoom = roomManager.getRoomByPlayer(leaderUUID);
             if (leaderRoom != null) {
-                leaderRoom.addOccupant(targetUUID); // Add the player to the leader's room
+                leaderRoom.addOccupant(targetUUID);
+                // Teleport the player to the leader's room if they are online
+                Player targetPlayer = Bukkit.getPlayer(targetUUID);
+                if (targetPlayer != null) {
+                    int[] coords = leaderRoom.getCoordinates();
+                    Location roomLocation =
+                            new Location(Bukkit.getWorld("world"), coords[0], coords[1], coords[2]);
+                    targetPlayer.teleport(roomLocation);
+                }
             }
         }
         return added;

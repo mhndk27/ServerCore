@@ -58,10 +58,11 @@ public class RoomManager {
     public void releaseRoomForMember(UUID memberId) {
         for (Room room : rooms.values()) {
             if (room.getOccupants().contains(memberId)) {
-                room.removeOccupant(memberId); // Remove the player from the occupants list
-                if (room.getPartyId() != null && room.getPartyId().equals(memberId)) {
-                    room.setOccupied(false, null); // Release the room if the player is the leader
-                }
+                room.removeOccupant(memberId);
+            }
+            // Check if this player is the room owner and release if true
+            if (room.getPartyId() != null && room.getPartyId().equals(memberId)) {
+                room.setOccupied(false, null);
             }
         }
     }
@@ -80,7 +81,8 @@ public class RoomManager {
 
     public Room getRoomByPlayer(UUID playerId) {
         for (Room room : rooms.values()) {
-            if (room.isOccupied() && room.getPartyId().equals(playerId)) {
+            if (room.getOccupants().contains(playerId)
+                    || (room.getPartyId() != null && room.getPartyId().equals(playerId))) {
                 return room;
             }
         }

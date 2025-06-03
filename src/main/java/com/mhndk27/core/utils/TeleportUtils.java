@@ -14,7 +14,7 @@ public class TeleportUtils {
     public static void teleportToLobby(Player player) {
         if (player == null)
             return;
-        World world = Bukkit.getWorlds().get(0); // الافتراض أن العالم الأول هو العالم الرئيسي
+        World world = Bukkit.getWorlds().get(0);
         Location lobbyLocation = new Location(world, LOBBY_X, LOBBY_Y, LOBBY_Z);
         player.teleport(lobbyLocation);
     }
