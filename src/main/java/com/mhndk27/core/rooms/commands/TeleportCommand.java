@@ -11,6 +11,7 @@ import com.mhndk27.core.partysys.Party;
 import com.mhndk27.core.partysys.PartyManager;
 import com.mhndk27.core.rooms.Room;
 import com.mhndk27.core.rooms.RoomManager;
+import com.mhndk27.core.utils.MessageUtils; // Import MessageUtils
 import com.mhndk27.core.utils.TeleportUtils; // Use general TeleportUtils
 
 public class TeleportCommand implements CommandExecutor {
@@ -39,16 +40,38 @@ public class TeleportCommand implements CommandExecutor {
         String destination = args[0].toLowerCase();
 
         if (destination.equals("lobby")) {
-            TeleportUtils.teleportToLobby(player); // Use TeleportUtils for lobby teleportation
-            player.sendMessage("Teleported to the lobby.");
-            roomManager.releaseRoomForMember(playerUUID); // تحرير الغرفة إذا عاد اللاعب إلى اللوبي
+            if (partyManager.isInParty(playerUUID)) {
+                Party party = partyManager.getParty(playerUUID);
+
+                if (party.isLeader(playerUUID)) {
+                    // Leader: teleport all party members to the lobby and release their rooms
+                    for (UUID memberUUID : party.getMembers()) {
+                        Player member = Bukkit.getPlayer(memberUUID);
+                        if (member != null) {
+                            TeleportUtils.teleportToLobby(member);
+                        }
+                        roomManager.releaseRoomForMember(memberUUID); // Release room for each member
+                    }
+                } else {
+                    // Member: teleport to the lobby, remove from party, and release their room
+                    partyManager.removeMember(party.getLeaderUUID(), playerUUID);
+                    TeleportUtils.teleportToLobby(player);
+                    player.sendMessage(MessageUtils.error(
+                            "You have been removed from the party and teleported to the lobby."));
+                    roomManager.releaseRoomForMember(playerUUID); // Release room for the member
+                }
+            } else {
+                // Not in a party: teleport to the lobby and release their room
+                TeleportUtils.teleportToLobby(player);
+                roomManager.releaseRoomForMember(playerUUID); // Release room for the player
+            }
             return true;
         }
 
         if (destination.equals("zombie_shooter")) {
             Room currentRoom = roomManager.getRoomByPlayer(playerUUID);
             if (currentRoom != null) { // Check if the player is already occupying a room
-                player.sendMessage("You are already in a waiting room.");
+                player.sendMessage(MessageUtils.error("You are already in a waiting room."));
                 return true; // Prevent redundant teleportation
             }
 
@@ -62,7 +85,7 @@ public class TeleportCommand implements CommandExecutor {
                     boolean reserved =
                             roomManager.reserveRoomForParty(playerUUID, party.getMembers());
                     if (!reserved) {
-                        player.sendMessage("No available rooms at the moment.");
+                        player.sendMessage(MessageUtils.error("No available rooms at the moment."));
                         return true;
                     }
                     room = roomManager.getRoomByPlayer(playerUUID);
@@ -70,21 +93,22 @@ public class TeleportCommand implements CommandExecutor {
                     room = roomManager.getRoomByPlayer(leaderUUID);
                     if (room == null || !room.isOccupied()
                             || !room.getOccupants().contains(playerUUID)) {
-                        player.sendMessage("Wait for your party leader to teleport.");
+                        player.sendMessage(
+                                MessageUtils.info("Wait for your party leader to teleport."));
                         return true;
                     }
                 }
             } else {
                 boolean reserved = roomManager.reserveRoom(playerUUID);
                 if (!reserved) {
-                    player.sendMessage("No available rooms at the moment.");
+                    player.sendMessage(MessageUtils.error("No available rooms at the moment."));
                     return true;
                 }
                 room = roomManager.getRoomByPlayer(playerUUID);
             }
 
             if (room == null) {
-                player.sendMessage("No available rooms at the moment.");
+                player.sendMessage(MessageUtils.error("No available rooms at the moment."));
                 return true;
             }
 
@@ -98,12 +122,14 @@ public class TeleportCommand implements CommandExecutor {
                     Player member = Bukkit.getPlayer(memberUUID);
                     if (member != null) {
                         member.teleport(roomLocation);
-                        member.sendMessage("Teleported to the Zombie Shooter waiting room.");
+                        member.sendMessage(MessageUtils
+                                .success("Teleported to the Zombie Shooter waiting room."));
                     }
                 }
             } else {
                 player.teleport(roomLocation);
-                player.sendMessage("Teleported to the Zombie Shooter waiting room.");
+                player.sendMessage(
+                        MessageUtils.success("Teleported to the Zombie Shooter waiting room."));
             }
             return true;
         }
