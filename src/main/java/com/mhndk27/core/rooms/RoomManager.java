@@ -68,7 +68,10 @@ public class RoomManager {
     }
 
     public void transferToNewRoom(UUID playerId, Room newRoom) {
-        releaseRoomForMember(playerId); // Release the player's current room
+        Room currentRoom = getRoomByPlayer(playerId); // Get the player's current room
+        if (currentRoom != null) {
+            releaseRoomForMember(playerId); // Release the current room
+        }
         newRoom.addOccupant(playerId); // Add the player to the new room
     }
 

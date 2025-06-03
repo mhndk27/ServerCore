@@ -12,6 +12,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import com.mhndk27.core.partysys.managers.PartyChatManager;
+import com.mhndk27.core.rooms.Room;
 import com.mhndk27.core.rooms.RoomManager; // Import RoomManager
 import com.mhndk27.core.utils.MessageUtils; // Update import to general utils
 import com.mhndk27.core.utils.TeleportUtils; // Use general TeleportUtils
@@ -101,6 +102,12 @@ public class PartyManager {
         boolean added = party.addMember(targetUUID);
         if (added) {
             addParty(party);
+
+            // Ensure the player's previous room is released before moving to the leader's room
+            Room leaderRoom = roomManager.getRoomByPlayer(leaderUUID);
+            if (leaderRoom != null) {
+                roomManager.transferToNewRoom(targetUUID, leaderRoom);
+            }
         }
         return added;
     }
@@ -117,11 +124,11 @@ public class PartyManager {
         if (removed) {
             playerPartyMap.remove(targetUUID);
             PartyChatManager.getInstance().disablePartyChat(targetUUID);
-            roomManager.releaseRoomForMember(targetUUID); // Ensure RoomManager is used correctly
+            roomManager.releaseRoomForMember(targetUUID); // Release room occupancy
 
             Player player = Bukkit.getPlayer(targetUUID);
             if (player != null) {
-                TeleportUtils.teleportToLocation(player, lobbyLocation); // Fix teleport logic
+                TeleportUtils.teleportToLocation(player, lobbyLocation);
                 player.sendMessage(MessageUtils
                         .info("You have been removed from the party and teleported to the lobby."));
             }

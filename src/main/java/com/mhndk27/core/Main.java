@@ -21,23 +21,20 @@ public class Main extends JavaPlugin {
     @Override
     public void onEnable() {
         roomManager = new RoomManager();
-        partyManager = new PartyManager(roomManager); // Pass RoomManager to PartyManager
+        partyManager = new PartyManager(roomManager);
 
-        // Pass RoomManager to PartyInviteManager
         new PartyInviteManager(partyManager, roomManager);
         new PartyChatManager(partyManager);
 
-        // تسجيل الأمر مع التنفيذ والتنقيح (TabCompleter)
         getCommand("party").setExecutor(new PartyCommand(partyManager));
         getCommand("party").setTabCompleter(new PartyTabCompleter(partyManager));
         getCommand("tpt").setExecutor(new TeleportCommand(roomManager, partyManager));
-        getCommand("tpt").setTabCompleter(new TeleportTabCompleter()); // Register tab completer
+        getCommand("tpt").setTabCompleter(new TeleportTabCompleter());
 
-        // تسجيل المستمعين للأحداث
         getServer().getPluginManager().registerEvents(new PartyChatListener(), this);
-        getServer().getPluginManager().registerEvents(new PlayerQuitListener(partyManager, roomManager), this);
-        getServer().getPluginManager().registerEvents(new PlayerJoinListener(), this); // Register
-                                                                                       // PlayerJoinListener
+        getServer().getPluginManager()
+                .registerEvents(new PlayerQuitListener(partyManager, roomManager), this);
+        getServer().getPluginManager().registerEvents(new PlayerJoinListener(), this);
     }
 
     @Override
