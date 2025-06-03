@@ -57,7 +57,7 @@ public class RoomManager {
 
     public void releaseRoomForMember(UUID memberId) {
         for (Room room : rooms.values()) {
-            if (room.isOccupied() && room.getOccupants().contains(memberId)) {
+            if (room.getOccupants().contains(memberId)) {
                 room.removeOccupant(memberId); // Remove the player from the occupants list
                 if (room.getPartyId() != null && room.getPartyId().equals(memberId)) {
                     room.setOccupied(false, null); // Release the room if the player is the leader
