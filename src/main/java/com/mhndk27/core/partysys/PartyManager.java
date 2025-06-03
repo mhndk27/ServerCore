@@ -103,10 +103,11 @@ public class PartyManager {
         if (added) {
             addParty(party);
 
-            // Ensure the player's previous room is released before moving to the leader's room
+            // Ensure all reservations are cleared before moving to the leader's room
+            roomManager.releaseRoomForMember(targetUUID);
             Room leaderRoom = roomManager.getRoomByPlayer(leaderUUID);
             if (leaderRoom != null) {
-                roomManager.transferToNewRoom(targetUUID, leaderRoom);
+                leaderRoom.addOccupant(targetUUID); // Add the player to the leader's room
             }
         }
         return added;

@@ -50,20 +50,21 @@ public class TeleportCommand implements CommandExecutor {
                         if (member != null) {
                             TeleportUtils.teleportToLobby(member);
                         }
-                        roomManager.releaseRoomForMember(memberUUID); // Release room for each member
+                        roomManager.releaseRoomForMember(memberUUID); // Release all reservations
+                                                                      // for each member
                     }
                 } else {
                     // Member: teleport to the lobby, remove from party, and release their room
                     partyManager.removeMember(party.getLeaderUUID(), playerUUID);
                     TeleportUtils.teleportToLobby(player);
-                    player.sendMessage(MessageUtils.error(
-                            "You have been removed from the party and teleported to the lobby."));
-                    roomManager.releaseRoomForMember(playerUUID); // Release room for the member
+                    roomManager.releaseRoomForMember(playerUUID); // Release all reservations for
+                                                                  // the member
                 }
             } else {
                 // Not in a party: teleport to the lobby and release their room
                 TeleportUtils.teleportToLobby(player);
-                roomManager.releaseRoomForMember(playerUUID); // Release room for the player
+                roomManager.releaseRoomForMember(playerUUID); // Release all reservations for the
+                                                              // player
             }
             return true;
         }

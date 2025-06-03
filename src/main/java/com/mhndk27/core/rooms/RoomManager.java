@@ -62,7 +62,6 @@ public class RoomManager {
                 if (room.getPartyId() != null && room.getPartyId().equals(memberId)) {
                     room.setOccupied(false, null); // Release the room if the player is the leader
                 }
-                break;
             }
         }
     }
